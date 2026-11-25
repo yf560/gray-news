@@ -27,6 +27,7 @@
           <input id="article-url" class="field" type="url" inputmode="url" placeholder="기사 링크 붙여넣기" aria-describedby="form-message">
           <textarea id="article-text" class="field" placeholder="기사 내용을 붙여넣어 주세요" aria-label="기사 내용" aria-describedby="form-message" hidden></textarea>
           <button class="primary" id="analyze-button" type="submit">분석하기</button>
+          <button class="secondary" id="preview-result" type="button">결과 화면 미리보기 →</button>
           <div id="loading" class="loading" hidden><span class="spinner" aria-hidden="true"></span><span>관련 자료를 찾고 있어요</span></div>
           <button type="button" class="text-btn" id="cancel-analysis" hidden>분석 취소</button>
           <p id="form-message" class="helper" role="status" aria-live="polite"></p>
@@ -359,7 +360,7 @@ function saveRecord() {
 }
 function setBusy(busy) {
   $('#article-form').setAttribute('aria-busy', String(busy));
-  for (const id of ['article-url', 'article-text', 'toggle-text', 'analyze-button', 'try-demo', 'try-old-demo']) $('#' + id).disabled = busy;
+  for (const id of ['article-url', 'article-text', 'toggle-text', 'analyze-button', 'preview-result', 'try-demo', 'try-old-demo']) $('#' + id).disabled = busy;
   $('#loading').hidden = !busy; $('#cancel-analysis').hidden = !busy;
   $('#analyze-button').textContent = busy ? '분석 중…' : '분석하기';
 }
@@ -387,7 +388,8 @@ async function submitArticle(event) {
     if (!response.ok) {
       openText = response.status === 422 || data?.code === 'ARTICLE_UNAVAILABLE';
       const fallback = response.status === 504 ? '분석 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.' : openText ? '기사 본문을 확인하지 못했습니다. 본문을 붙여넣어 주세요.' : '분석하지 못했습니다. 다시 시도해 주세요.';
-      throw new Error(typeof data?.error === 'string' && data.error.trim() ? data.error : fallback);
+      const legacyInputError = data?.error === '기사 내용은 1~50,000자로 입력해 주세요.';
+      throw new Error(legacyInputError ? '현재 서버와 입력 형식이 맞지 않습니다. 결과 화면 미리보기를 이용해 주세요.' : typeof data?.error === 'string' && data.error.trim() ? data.error : fallback);
     }
     renderAnalysis(data, {input: {url, text}});
   } catch (error) {
@@ -437,6 +439,7 @@ $('#toggle-text').addEventListener('click', () => {
 });
 $('#try-demo').addEventListener('click', () => renderAnalysis(SAMPLE_ANALYSIS, {kind: 'sample'}));
 $('#try-old-demo').addEventListener('click', () => renderAnalysis(PARK_DEMO, {kind: 'demo'}));
+$('#preview-result').addEventListener('click', () => renderAnalysis(PARK_DEMO, {kind: 'demo'}));
 $('#save-record').addEventListener('click', saveRecord);
 $('#open-menu').addEventListener('click', openMenu);
 $('#close-menu').addEventListener('click', () => closeMenu());
@@ -472,5 +475,9 @@ window.addEventListener('storage', event => {
     if ($('#home').classList.contains('active')) renderRecent();
   }
 });
+const preview = new URLSearchParams(location.search).get('preview');
+if (preview === 'result') renderAnalysis(PARK_DEMO, {kind: 'demo'});
+else if (preview === 'sample') renderAnalysis(SAMPLE_ANALYSIS, {kind: 'sample'});
+else if (preview === 'history') show('history');
 </script>
 </body></html>
