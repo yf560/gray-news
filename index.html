@@ -12,6 +12,17 @@
 @media(min-width:760px){.shell{margin:24px auto 0;border-radius:10px 10px 0 0;padding-left:40px;padding-right:40px}.hero{padding-top:40px}.hero h1{font-size:36px}.input-box{padding:24px}.bottom-nav{border-left:1px solid var(--line);border-right:1px solid var(--line)}}@media(max-width:420px){.shell{padding-left:20px;padding-right:20px}.hero h1{font-size:30px}.field{font-size:16px}.input-box{padding:16px;gap:11px}.demo{gap:10px}.demo strong{font-size:14px}.demo span{font-size:11px}.sample-actions button{font-size:12px}.result-title{font-size:24px}.section-head h2{font-size:19px}.issue-body{padding:0 14px}.topnote{font-size:11px}}@media(prefers-reduced-motion:reduce){*{transition:none!important}.spinner{animation:none}}
 
 .result-title:focus,.history h1:focus{outline:none}.demo-figure{margin:20px 0 0}.demo-photo{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;border-radius:6px;margin:20px 0 0}.demo-figure .demo-photo{margin:0}.demo-figure figcaption{font-size:10px;color:var(--muted);text-align:right;margin-top:4px}.demo-source-paragraph{font-size:15px;line-height:1.9;margin-top:22px}
+/* Compact article overview and analysis workspace. */
+.result{padding-top:12px}.result>.back{min-height:30px;font-size:12px;margin-bottom:9px}
+.result .article-card{margin:0;background:#f7f8fa;border:1px solid #edf0f3;padding:16px;border-radius:6px}
+.article-top{display:flex;gap:14px;align-items:flex-start}.article-heading{min-width:0;flex:1;word-break:keep-all}.article-heading .meta{font-size:10px;color:#6b7684;margin-bottom:5px}.article-heading .result-title{font-size:21px;line-height:1.5;letter-spacing:-.8px;margin:0}
+#article-thumbnail{width:82px;flex-shrink:0}#article-thumbnail .demo-photo{width:82px;height:86px;aspect-ratio:auto;object-fit:cover;margin:0;border-radius:4px}
+.article-card .result-summary{font-size:13px;line-height:1.75;margin-top:12px;color:#4e5968}.article-card #original-input details{margin-top:11px;padding-top:6px}.article-card #original-input summary{font-size:11px}.article-card #result-notice{padding:0;margin:9px 0 0;background:none;font-size:10px;color:#8b95a1}
+.analysis-counts{display:flex;align-items:center;gap:0;margin:16px 0 10px;color:#6b7684;font-size:12px}.analysis-counts>span{padding:0 16px;border-right:1px solid #e5e8eb;line-height:1.2}.analysis-counts>span:first-child{padding-left:0}.analysis-counts>span:last-child{border-right:0}.analysis-counts strong{color:#333d4b;font-weight:700;margin-left:4px}
+.result-tabs{display:flex;border-bottom:1px solid #e5e8eb;margin-bottom:16px;gap:24px}.result-tabs button{position:relative;padding:12px 4px;min-width:48px;border:0;background:none;color:#8b95a1;font-size:15px;font-weight:700}.result-tabs button[aria-selected=true]{color:#1b64da}.result-tabs button[aria-selected=true]:after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:3px;background:#3182f6}
+#issue-panel:focus,#all-sources:focus{outline:none}#issues summary{padding:16px 14px;font-size:14px}.opinion{padding:16px 0}.opinion h3{font-size:17px;line-height:1.55;margin-top:9px;font-weight:700}.opinion p{font-size:13px;line-height:1.75;color:#6b7684}.evidence-label{margin-top:10px}.source{padding:8px 11px;margin-top:12px}.source strong{font-size:10px}.source a{padding:6px 0}
+.source-card{display:flex;gap:12px;align-items:flex-start;text-decoration:none;padding:17px 0;border-bottom:1px solid #edf0f3}.source-index{color:#8b95a1;font-size:12px;font-variant-numeric:tabular-nums;padding-top:2px}.source-copy{flex:1;min-width:0}.source-copy strong{display:block;color:#333d4b;font-size:14px;font-weight:650;overflow-wrap:anywhere}.source-copy small{display:block;font-size:11px;color:#8b95a1;margin-top:5px;overflow-wrap:anywhere}.source-arrow{color:#3182f6;font-size:17px}.source-card:hover .source-copy strong{color:#1b64da}.result .save{margin-top:10px}
+@media(min-width:760px){#article-thumbnail,#article-thumbnail .demo-photo{width:100px}#article-thumbnail .demo-photo{height:90px}.article-heading .result-title{font-size:23px}.result .article-card{padding:20px}}
 </style></head>
 <body>
 <div class="shell" id="page-shell">
@@ -48,17 +59,25 @@
     <section id="result" class="screen" aria-label="분석 결과">
       <div class="result">
         <button class="back" data-go="home">← 새 분석</button>
-        <h1 class="result-title" id="result-title" tabindex="-1"></h1>
-        <p class="meta" id="result-meta"></p>
-        <p class="notice" id="result-notice"></p>
-        <article class="original">
-          <span class="tag">기사 요약</span><p class="result-summary" id="result-summary"></p>
+        <article class="original article-card">
+          <div class="article-top">
+            <div class="article-heading"><p class="meta" id="result-meta"></p><h1 class="result-title" id="result-title" tabindex="-1"></h1></div>
+            <div id="article-thumbnail" hidden></div>
+          </div>
+          <p class="result-summary" id="result-summary"></p>
           <div id="original-input"></div>
+          <p class="notice" id="result-notice"></p>
         </article>
-        <div class="section-head"><h2>주요 쟁점</h2><span class="helper" id="issue-count"></span></div>
-        <div id="issues"></div>
-        <div id="legacy-result" class="legacy-text" hidden></div>
-        <div id="all-sources"></div>
+        <div id="analysis-counts" class="analysis-counts" aria-label="분석 개요"></div>
+        <div class="result-tabs" role="tablist" aria-label="분석 결과 보기">
+          <button id="issues-tab" role="tab" aria-selected="true" aria-controls="issue-panel">쟁점</button>
+          <button id="sources-tab" role="tab" aria-selected="false" aria-controls="all-sources" tabindex="-1">출처</button>
+        </div>
+        <div id="issue-panel" role="tabpanel" aria-labelledby="issues-tab" tabindex="0">
+          <div id="issues"></div>
+          <div id="legacy-result" class="legacy-text" hidden></div>
+        </div>
+        <div id="all-sources" role="tabpanel" aria-labelledby="sources-tab" tabindex="0" hidden></div>
         <button id="save-record" class="secondary save">내 기록에 저장</button>
         <p id="save-message" class="helper" role="status" aria-live="polite"></p>
       </div>
@@ -293,6 +312,16 @@ function renderLegacy(data) {
   }
   node.append(document.createTextNode(chars.slice(cursor).join('')));
 }
+function selectResultTab(name, focus = false) {
+  for (const [key, panel] of [['issues','issue-panel'], ['sources','all-sources']]) {
+    const active = name === key;
+    const tab = $('#' + key + '-tab');
+    tab.setAttribute('aria-selected', String(active));
+    tab.tabIndex = active ? 0 : -1;
+    $('#' + panel).hidden = !active;
+    if (active && focus) tab.focus();
+  }
+}
 // A의 version 1 응답과 샘플이 같은 진입점을 사용한다.
 function renderAnalysis(raw, options = {}) {
   const analysis = normalizeAnalysis(raw);
@@ -300,12 +329,10 @@ function renderAnalysis(raw, options = {}) {
   const input = cleanInput(options.input);
   currentResult = {kind, input, analysis};
   $('#result-title').textContent = analysis.title || input.text.slice(0, 60) || '기사의 다양한 관점';
-  document.querySelector('.demo-figure')?.remove();
+  const thumbnail = $('#article-thumbnail'); thumbnail.replaceChildren(); thumbnail.hidden = true;
   if (isServiceDemo(analysis,kind)) {
-    const figure=element('figure','demo-figure');
     const photo=element('img','demo-photo');photo.src='assets/demo-park.png';photo.alt='산책로와 나무가 있는 도시 공원 · 데모 이미지';photo.width=1536;photo.height=1024;
-    figure.append(photo,element('figcaption','','데모 이미지'));
-    $('#result-notice').after(figure);
+    thumbnail.append(photo); thumbnail.hidden = false;
   }
   $('#result-meta').textContent = kind === 'sample' ? '샘플' : kind === 'demo' ? '공원 예시' : '분석 결과';
   $('#result-notice').textContent = kind === 'sample' ? '샘플 데이터 · 출처는 연결 확인용 링크입니다.' : kind === 'demo' ? '가상 기사로 구성한 예시입니다.' : analysis.version === 1 ? '' : '이전 형식의 분석 결과입니다. 텍스트와 출처를 확인할 수 있어요.';
@@ -319,18 +346,28 @@ function renderAnalysis(raw, options = {}) {
     original.append(details);
   }
   $('#issues').replaceChildren(); $('#legacy-result').replaceChildren(); $('#legacy-result').hidden = true;
-  $('#issue-count').textContent = analysis.version === 1 ? analysis.issues.length + '개' : '';
+  const counts = $('#analysis-counts'); counts.replaceChildren();
+  if (analysis.version === 1) {
+    for (const [label, count] of [['쟁점',analysis.issues.length], ['관점',analysis.issues.reduce((sum, issue) => sum + issue.perspectives.length, 0)], ['출처',analysis.sources.length]]) {
+      const item = element('span'); item.append(document.createTextNode(label + ' '),element('strong','',String(count))); counts.append(item);
+    }
+  } else {
+    const item = element('span'); item.append(document.createTextNode('출처 '),element('strong','',String(analysis.sources.length))); counts.append(item);
+  }
   const sources = new Map(analysis.sources.map(source => [source.id, source]));
   if (analysis.version === 1) {
     for (const [index, issue] of analysis.issues.entries()) $('#issues').append(renderIssue(issue, index, sources, kind));
     if (!analysis.issues.length) $('#issues').append(element('p', 'notice', '관련 자료에서 비교할 쟁점을 찾지 못했습니다.'));
   } else renderLegacy(analysis);
   const allSources = $('#all-sources'); allSources.replaceChildren();
-  if (analysis.version !== 1) {
-    const heading = element('div', 'section-head'); heading.append(element('h2', '', '관련 출처')); allSources.append(heading);
-    if (!analysis.sources.length) allSources.append(element('p', 'notice', '연결된 출처를 찾지 못했습니다.'));
-    for (const source of analysis.sources) { const link = sourceLink(source); link.className = 'record'; allSources.append(link); }
+  if (!analysis.sources.length) allSources.append(element('p', 'empty', '연결된 출처가 없어요.'));
+  for (const [index, source] of analysis.sources.entries()) {
+    const link = sourceLink(source); link.className = 'source-card'; link.replaceChildren();
+    link.append(element('span','source-index',String(index + 1).padStart(2,'0')));
+    const copy = element('span','source-copy'); copy.append(element('strong','',source.title),element('small','',isServiceDemo(analysis,kind) ? '체험용 예시 자료' : new URL(source.url).hostname));
+    link.append(copy,element('span','source-arrow','↗')); allSources.append(link);
   }
+  selectResultTab('issues');
   $('#save-message').textContent = ''; $('#save-message').className = 'helper';
   show('result');
 }
@@ -482,6 +519,14 @@ $('#recent-records').addEventListener('click', event => {
 renderRecent();
 
 $('#article-form').addEventListener('submit', submitArticle);
+for (const name of ['issues','sources']) {
+  $('#' + name + '-tab').addEventListener('click', () => selectResultTab(name));
+  $('#' + name + '-tab').addEventListener('keydown', event => {
+    if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
+    event.preventDefault();
+    selectResultTab(event.key === 'Home' ? 'issues' : event.key === 'End' ? 'sources' : name === 'issues' ? 'sources' : 'issues', true);
+  });
+}
 $('#cancel-analysis').addEventListener('click', () => pendingRequest?.controller.abort());
 $('#toggle-text').addEventListener('click', () => {
   const textarea = $('#article-text'); textarea.hidden = !textarea.hidden;
