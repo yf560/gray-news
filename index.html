@@ -32,6 +32,44 @@ details.issue{border:1px solid var(--line);margin-bottom:14px;overflow:hidden}su
 </main></div><script>
 'use strict';
 const $ = selector => document.querySelector(selector);
+// 임시 FE 검수용. 이 주소만 API 대신 지정한 결과를 사용한다.
+const REVIEW_ARTICLE_URL = 'https://www.mbn.co.kr/vod/programView/1434541';
+const REVIEW_SOURCES = {
+  R1:{title:'시설 이용 시간 조사 · 검사용',body:'운영 시간이 늘어나면 낮 시간에 방문하기 어려운 이용자도 시설을 이용할 수 있다는 가상 자료입니다.'},
+  R2:{title:'운영 인력·비용 검토 · 검사용',body:'운영 시간 확대에는 인력 배치와 추가 운영비 검토가 필요하다는 가상 자료입니다.'},
+  R3:{title:'단계별 시범 운영안 · 검사용',body:'일부 시설에서 먼저 운영 시간을 늘린 뒤 이용 현황을 살펴보자는 가상 제안입니다.'}
+};
+const reviewSourceUrl = id => new URL('?review-source=' + encodeURIComponent(id), location.href).href;
+function matchesReviewArticle(url) {
+  const safe = safeUrl(url); if (!safe) return false;
+  const parsed = new URL(safe);
+  return parsed.hostname === 'www.mbn.co.kr' && parsed.pathname.replace(/\/$/,'') === '/vod/programView/1434541';
+}
+function openReviewResult(input) {
+  renderAnalysis({version:1,title:'공공시설 운영 시간 확대, 기대와 우려',
+    summary:'운영 시간을 늘려 이용 기회를 넓히자는 의견과 인력·비용을 먼저 살펴야 한다는 의견을 비교합니다.',
+    issues:[
+      {question:'운영 시간을 늘리면 더 편리해질까?',perspectives:[
+        {actor:'이용자 관점',claim:'퇴근 후에도 시설을 이용할 수 있다',evidence:'이용 시간 조사에서는 낮 시간에 방문하기 어려운 사람들의 수요를 다룹니다.',sourceIds:['R1']},
+        {actor:'운영 관점',claim:'인력과 예산을 함께 확보해야 한다',evidence:'운영비 검토 자료는 인력 배치와 추가 비용 검토를 제안합니다.',sourceIds:['R2']}
+      ],note:null},
+      {question:'전면 확대와 시범 운영 중 무엇이 나을까?',perspectives:[
+        {actor:'단계적 확대',claim:'일부 시설부터 먼저 시도할 수 있다',evidence:'시범 운영안은 이용 현황을 확인한 뒤 확대 여부를 정하는 방식입니다.',sourceIds:['R3']},
+        {actor:'즉시 확대',claim:'검증되지 않은 주장',evidence:'연결된 근거 없음',sourceIds:[]}
+      ],note:'두 번째 관점은 자료 부족 상태를 확인하기 위한 항목입니다.'}
+    ],sources:Object.entries(REVIEW_SOURCES).map(([id,item])=>({id,title:item.title,url:reviewSourceUrl(id)}))
+  },{kind:'review',input});
+}
+function openReviewSource(id) {
+  if (!Object.hasOwn(REVIEW_SOURCES,id)) return;
+  const source=REVIEW_SOURCES[id];
+  const panel=element('section','screen');panel.id='review-source';panel.setAttribute('aria-label','검사용 출처');
+  const content=element('div','result');
+  const back=element('button','back','← 기사 입력으로');back.type='button';back.addEventListener('click',()=>show('home'));
+  const title=element('h1','result-title',source.title);title.tabIndex=-1;
+  content.append(back,title,element('p','notice','FE 검사용 가상 자료입니다.'),element('p','result-summary',source.body));panel.append(content);document.querySelector('main').append(panel);
+  document.querySelectorAll('.screen').forEach(node=>node.classList.toggle('active',node===panel));title.focus({preventScroll:true});
+}
 const RECORDS_KEY = 'gray-records-v1';
 const REQUEST_TIMEOUT_MS = 130000;
 let currentResult = null;
@@ -179,12 +217,12 @@ function selectResultTab(name, focus = false) {
 // A의 version 1 응답을 관점 카드로 표시한다.
 function renderAnalysis(raw, options = {}) {
   const analysis = normalizeAnalysis(raw);
-  const kind = 'analysis';
+  const kind = options.kind === 'review' ? 'review' : 'analysis';
   const input = cleanInput(options.input);
   currentResult = {kind, input, analysis};
   $('#result-title').textContent = analysis.title || input.text.slice(0, 60) || '기사의 다양한 관점';
-  $('#result-meta').textContent = '분석한 기사';
-  $('#result-notice').textContent = '';
+  $('#result-meta').textContent = kind === 'review' ? 'FE 검사용 임시 결과' : '분석한 기사';
+  $('#result-notice').textContent = kind === 'review' ? '임시 데이터입니다. 입력한 MBN 기사를 분석한 결과가 아닙니다.' : '';
   $('#result-summary').textContent = analysis.summary || '이전에 저장한 분석 내용을 아래에서 확인하세요.';
   const original = $('#original-input'); original.replaceChildren();
   if (input.url || input.text) {
@@ -240,7 +278,7 @@ function readRecords() {
         if (isObject(item) && ['demo','sample'].includes(item.kind)) continue;
         try {
           if (!isObject(item) || typeof item.id !== 'string' || ids.has(item.id)) throw new Error('기록 형식 오류');
-          valid.push({id: item.id, savedAt: typeof item.savedAt === 'string' ? item.savedAt : '', input: cleanInput(item.input), kind: 'analysis', analysis: normalizeAnalysis(item.analysis)});
+          valid.push({id: item.id, savedAt: typeof item.savedAt === 'string' ? item.savedAt : '', input: cleanInput(item.input), kind: item.kind === 'review' ? 'review' : 'analysis', analysis: normalizeAnalysis(item.analysis)});
           ids.add(item.id);
         } catch { storageWarning = '일부 기록을 읽지 못했습니다. 기존 저장 데이터는 변경하지 않았습니다.'; storageReadable = false; }
       }
@@ -274,7 +312,7 @@ function renderHistory() {
     const open = element('button', 'record-open'); open.type = 'button'; open.dataset.record = record.id;
     const title = record.analysis.title || record.input.text.slice(0, 60) || '이전 분석 결과';
     const date = Date.parse(record.savedAt);
-    open.append(element('strong', '', title), element('small', '', (Number.isFinite(date) ? new Date(date).toLocaleDateString('ko-KR') : '저장 날짜 없음')));
+    open.append(element('strong', '', title), element('small', '', (Number.isFinite(date) ? new Date(date).toLocaleDateString('ko-KR') : '저장 날짜 없음') + (record.kind === 'review' ? ' · FE 검사' : '')));
     const remove = element('button', 'record-delete', '삭제'); remove.type = 'button'; remove.dataset.delete = record.id;
     remove.setAttribute('aria-label', title + ' 기록 삭제'); row.append(open, remove); list.append(row);
   }
@@ -311,6 +349,7 @@ async function submitArticle(event) {
   if (!url && !text) { formError(inputMode === 'url' ? '기사 링크를 입력해 주세요.' : '기사 본문을 입력해 주세요.', inputMode === 'url' ? $('#article-url') : $('#article-text')); return; }
   if (!text && !safeUrl(url)) { formError('http 또는 https로 시작하는 기사 링크를 입력해 주세요.', $('#article-url')); return; }
   if (Array.from(text).length > 50000 || Array.from(url).length > 50000) { formError('기사 내용은 50,000자 이내로 입력해 주세요.'); return; }
+  if (!text && matchesReviewArticle(url)) { $('#form-message').textContent=''; openReviewResult({url,text:''}); return; }
   if (location.protocol === 'file:') { formError('서버를 실행한 뒤 http://127.0.0.1:8765 에서 이용해 주세요.'); return; }
   const request = {controller: new AbortController(), timedOut: false}; pendingRequest = request;
   const timer = setTimeout(() => { request.timedOut = true; request.controller.abort(); }, REQUEST_TIMEOUT_MS);
@@ -361,4 +400,7 @@ $('#records').addEventListener('click',event=>{
   else if(remove){try{records=readRecords();persistRecords(records.filter(item=>item.id!==remove.dataset.delete));renderHistory();$('#history-message').textContent='기사를 삭제했어요.';($('#records button')||$('#history-title')).focus();}catch(error){$('#history-message').textContent=error.message;}}
 });
 window.addEventListener('storage',event=>{if([RECORDS_KEY,'gray-live-records',null].includes(event.key)){records=readRecords();if($('#history').classList.contains('active'))renderHistory();}});
+const reviewParams = new URLSearchParams(location.search);
+if (reviewParams.get('review') === 'mbn') $('#article-url').value = REVIEW_ARTICLE_URL;
+if (reviewParams.has('review-source')) openReviewSource(reviewParams.get('review-source'));
 </script></body></html>
