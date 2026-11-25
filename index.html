@@ -1,39 +1,25 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#ffffff"><title>GRAY — 뉴스 관점 비교</title><link rel="icon" type="image/svg+xml" href="assets/gray-favicon.svg"><style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
-:root{--ink:#191f28;--muted:#6b7684;--line:#e5e8eb;--blue:#3182f6}
-*{box-sizing:border-box}body{margin:0;background:#f4f5f7;color:var(--ink);font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Segoe UI','Malgun Gothic',sans-serif;line-height:1.65;letter-spacing:-.025em;-webkit-font-smoothing:antialiased}button,input,textarea{font:inherit;border-radius:0}button{cursor:pointer;min-height:44px;-webkit-tap-highlight-color:transparent}a{color:inherit}button:disabled{opacity:.55;cursor:wait}button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #84b5fc;outline-offset:3px}h1,h2,h3,p{margin:0}[hidden]{display:none!important}
-.shell{max-width:720px;min-height:100vh;background:#fff;margin:auto;padding:0 24px 48px}header{height:78px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:1px solid #edf0f3}.brand{display:inline-flex;align-items:center;gap:9px;text-decoration:none;font-size:25px;font-weight:800;letter-spacing:-1px;flex-shrink:0}.brand-symbol{width:28px;height:28px}.header-nav{display:flex;gap:18px}.header-nav button{padding:5px 0;border:0;background:none;font-size:13px;font-weight:600;color:#8b95a1;white-space:nowrap}.header-nav button[aria-current=page]{color:#1b64da}.screen{display:none;min-width:0}.screen.active{display:block}.hero{padding:42px 0 0}.hero h1{font-size:29px;letter-spacing:-1.3px;line-height:1.45;word-break:keep-all}.intro{font-size:14px;color:var(--muted);margin:10px 0 28px;word-break:keep-all}.input-box{border:1px solid var(--line);padding:22px;background:#fff}.input-tabs{display:flex;gap:24px;border-bottom:1px solid var(--line);margin-bottom:22px}.input-tabs button{position:relative;border:0;background:none;padding:0 0 12px;color:#8b95a1;font-size:14px;font-weight:650}.input-tabs button[aria-selected=true]{color:#1b64da}.input-tabs button[aria-selected=true]:after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:var(--blue)}.field-label{display:block;font-size:13px;font-weight:650;margin-bottom:9px}.field{display:block;width:100%;min-width:0;background:#f8f9fb;border:1px solid #e1e5ea;padding:14px;font-size:15px;color:var(--ink)}.field::placeholder{color:#8b95a1}.field:focus{border-color:var(--blue)}textarea.field{min-height:190px;resize:vertical}.primary,.secondary{border:0;padding:13px 18px;font-weight:650}.primary{background:var(--blue);color:white;width:100%;margin-top:18px;min-height:52px}.primary:hover{background:#1b64da}.secondary{background:#edf4ff;color:#1b64da}.secondary:hover{background:#e2edff}.helper{color:var(--muted);font-size:12px;margin-top:9px;overflow-wrap:anywhere}.helper:empty{display:none}.helper.error{color:#c53d43}.loading{display:flex;align-items:center;gap:9px;font-size:13px;color:#4e5968;margin-top:16px}.spinner{width:16px;height:16px;border:2px solid #dce9ff;border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0}.text-btn{border:0;background:none;color:#6b7684;padding:4px 0;font-size:12px}@keyframes spin{to{transform:rotate(360deg)}}
-.history{padding:32px 0}.history h1{font-size:27px;letter-spacing:-1px}.history .intro{margin:7px 0 24px}.record{padding:19px 0;display:flex;align-items:center;gap:12px;border-bottom:1px solid #edf0f3;overflow-wrap:anywhere}.record button{background:none;border:0;text-align:left}.record-open{flex:1;min-width:0;padding:0}.record strong{display:block;font-size:15px;font-weight:650}.record small{font-size:11px;color:var(--muted);display:block;margin-top:5px}.record-delete{font-size:12px;color:#8b95a1;flex-shrink:0}.record-delete:hover{color:#c53d43}.empty-state{text-align:center;padding:48px 12px;border-top:1px solid var(--line)}.empty-state h2{font-size:17px}.empty-state p{font-size:13px;color:var(--muted);margin:8px 0 22px}.empty{padding:25px 0;font-size:13px;color:var(--muted)}
-.result{padding:18px 0}.back{border:0;background:none;color:#6b7684;padding:0;margin-bottom:10px;min-height:32px;font-size:12px}.article-card{background:#f7f8fa;padding:20px;border:1px solid #edf0f3;overflow-wrap:anywhere}.meta{font-size:11px;color:var(--muted);margin-bottom:6px}.result-title{font-size:23px;line-height:1.5;letter-spacing:-.8px;word-break:keep-all;overflow-wrap:anywhere}.result-title:focus,#history-title:focus{outline:none}.summary-label{display:block;font-size:11px;color:#6b7684;font-weight:650;margin-top:16px}.result-summary{font-size:14px;line-height:1.8;color:#4e5968;margin-top:5px}.original details{border-top:1px solid var(--line);margin-top:14px;padding-top:9px}.original details summary{padding:3px 0;font-size:12px;color:var(--muted)}.original a{display:block;font-size:12px;color:#2874db;overflow-wrap:anywhere;padding:7px 0}.input-preview,.legacy-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}.input-preview{max-height:240px;overflow:auto;margin-top:10px}.result-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0}.save{font-size:13px;min-width:112px;flex-shrink:0}.analysis-counts{display:flex;flex-wrap:wrap;gap:6px 12px;color:var(--muted);font-size:11px}.analysis-counts strong{color:#333d4b;font-weight:700;margin-left:3px}.result-tabs{display:flex;gap:24px;border-bottom:1px solid var(--line);margin:22px 0 16px}.result-tabs button{position:relative;padding:10px 0;background:none;border:0;color:#8b95a1;font-size:14px;font-weight:650}.result-tabs button[aria-selected=true]{color:#1b64da}.result-tabs button[aria-selected=true]:after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:var(--blue)}#issue-panel:focus,#all-sources:focus{outline:none}
-details.issue{border:1px solid var(--line);margin-bottom:14px;overflow:hidden}summary{cursor:pointer;list-style:none;display:flex;align-items:flex-start;gap:10px;padding:17px 15px;font-size:14px;font-weight:700;line-height:1.55;overflow-wrap:anywhere}summary::-webkit-details-marker{display:none}summary:after{content:'⌄';margin-left:auto;color:#8b95a1;flex-shrink:0}details[open]>summary{background:#f8faff;border-bottom:1px solid #edf2fa}details[open]>summary:after{content:'⌃'}.issue-no{color:var(--blue);font-size:12px;padding-top:1px}.issue-body{padding:0 15px}.opinion{padding:18px 0;overflow-wrap:anywhere}.opinion+.opinion{border-top:1px solid #edf0f3}.opinion .label{display:inline-block;background:#edf4ff;color:#2874db;font-size:11px;font-weight:650;padding:3px 8px}.opinion.against .label{background:#e9f7f3;color:#15836b}.opinion h3{font-size:17px;line-height:1.55;margin-top:10px}.opinion p{font-size:13px;line-height:1.8;color:#6b7684}.evidence-label{display:block;font-size:11px;font-weight:600;color:#8b95a1;margin:11px 0 4px}.source{margin-top:12px;padding:10px 12px;background:#f8f9fb;color:var(--muted);font-size:11px}.source strong{font-weight:600}.source a{display:block;color:#2874db;font-size:12px;padding:6px 0;text-decoration:none;overflow-wrap:anywhere}.source a:hover{text-decoration:underline}.source a+a{border-top:1px solid #e9edf3}.notice{padding:11px 13px;background:#f3f6fa;font-size:12px;color:var(--muted);margin-top:14px;overflow-wrap:anywhere}.notice:empty{display:none}.source-card{display:flex;align-items:flex-start;gap:12px;padding:17px 0;border-bottom:1px solid #edf0f3;text-decoration:none}.source-index{font-size:12px;color:#8b95a1;padding-top:2px}.source-copy{flex:1;min-width:0}.source-copy strong{display:block;font-size:14px;font-weight:650;overflow-wrap:anywhere}.source-copy small{display:block;font-size:11px;color:var(--muted);margin-top:5px;overflow-wrap:anywhere}.source-arrow{color:var(--blue);font-size:17px}.source-card:hover strong{color:#1b64da}
-@media(min-width:760px){.shell{margin:24px auto 0;padding:0 40px 56px}.hero{padding-top:44px}.hero h1{font-size:32px}.input-box{padding:26px}}@media(max-width:420px){.shell{padding-left:20px;padding-right:20px}.brand{font-size:23px;gap:7px}.brand-symbol{width:25px;height:25px}.header-nav{gap:14px}.header-nav button{font-size:12px}.hero{padding-top:32px}.hero h1{font-size:27px}.intro{font-size:13px}.input-box{padding:18px}.field{font-size:16px}.article-card{padding:16px}.result-title{font-size:21px}.save{min-width:100px;padding:11px 12px}.analysis-counts{gap:5px 9px}.result-tabs{gap:22px}}@media(prefers-reduced-motion:reduce){.spinner{animation:none}}
-/* Article photography and restrained product accents. */
-.home-heading{display:flex;align-items:center;justify-content:space-between;gap:22px}.home-heading h1{max-width:430px}.home-art{display:block;flex-shrink:0;width:112px;height:98px}.hero .intro{margin-top:12px}.input-box{border-top:3px solid #3182f6}.header-nav button[aria-current=page]{position:relative}.header-nav button[aria-current=page]:after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:#3182f6}
-.article-card{background:#fff;border:1px solid #e5e8eb}.article-card .meta{display:inline-block;color:#2874db;font-weight:600;margin-bottom:9px}.article-figure{margin:18px 0 0}.article-media{aspect-ratio:16/9;background:#f3f5f8;overflow:hidden}.article-photo{display:block;width:100%;height:100%;object-fit:cover;opacity:0}.article-media.loaded .article-photo{opacity:1}.article-figure figcaption{font-size:10px;color:#8b95a1;margin-top:5px;text-align:right}.article-figure figcaption a{display:inline-block;padding:0;font-size:10px;color:#8b95a1;text-decoration:none}.article-figure figcaption a:hover{color:#2874db;text-decoration:underline}.summary-block{margin-top:18px;padding:13px 15px;background:#f6f8fb;border-left:2px solid #b7d2fb}.summary-block .summary-label{color:#2874db;font-size:11px;font-weight:650;margin:0}.summary-block .result-summary{margin-top:5px;font-size:13px;line-height:1.85}.article-card #result-notice{background:none;padding:0;margin-top:12px;font-size:11px;color:#8b95a1}.original details{margin-top:13px}.result-actions{padding:14px 0;border-bottom:1px solid #edf0f3;margin:8px 0 0}.analysis-counts{gap:0}.analysis-counts>span{padding:0 11px;border-right:1px solid #e5e8eb}.analysis-counts>span:first-child{padding-left:0}.analysis-counts>span:last-child{border:0}.analysis-counts strong{font-size:13px}.save{display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap}.save-icon{display:flex;align-items:center}.save-icon svg{width:17px;height:17px}.result-tabs{margin-top:14px}details.issue>summary .issue-no{display:grid;place-items:center;background:#edf4ff;width:24px;min-width:24px;height:24px;padding:0;font-size:11px}.record .record-open{display:flex;align-items:center;gap:14px}.record-copy{display:block;min-width:0;flex:1}.record-photo{display:block;flex-shrink:0;width:64px;height:64px;object-fit:cover}
-@media(max-width:420px){.home-heading{gap:12px}.home-heading h1{max-width:220px}.home-art{width:84px;height:84px}.analysis-counts>span{padding:0 8px}.save{font-size:12px;gap:5px;min-width:0;padding:11px}.article-figure{margin-top:15px}.summary-block{padding:12px}.record .record-open{gap:11px}.record-photo{width:54px;height:54px}}
-@media(min-width:760px){.article-media{max-height:300px}.home-art{width:128px;height:112px}}
-</style><link rel="stylesheet" href="assets/home.css?v=soft-blend-1"></head>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101214"><title>GRAY — 뉴스 관점 비교</title><link rel="icon" type="image/svg+xml" href="assets/gray-mark-dark.svg"><link rel="stylesheet" href="assets/app.css?v=perspective-cards-1"></head>
 <body><div class="shell is-home" id="page-shell">
-<header><a href="#home" class="brand" id="brand" aria-label="GRAY 홈"><img class="brand-symbol" src="assets/gray-mark.svg" width="28" height="28" alt="" aria-hidden="true"><span>GRAY</span></a><nav class="header-nav" aria-label="주 메뉴"><button data-go="home" aria-current="page">기사 분석</button><button data-go="history">저장한 기사</button></nav></header>
+<header><a href="#home" class="brand" id="brand" aria-label="GRAY 홈"><img class="brand-symbol" src="assets/gray-mark-dark.svg" width="28" height="28" alt="" aria-hidden="true"><span>GRAY</span></a><nav class="header-nav" aria-label="주 메뉴"><button data-go="home" aria-current="page">기사 분석</button><button data-go="history">저장한 기사</button></nav></header>
 <main>
 <section id="home" class="screen active" aria-label="기사 분석"><div class="hero">
-<div class="home-heading"><h1>같은 뉴스,<br>다른 시각</h1></div><p class="intro">쟁점과 근거를 함께 읽다</p>
+<p class="home-kicker">뉴스 관점 분석</p><div class="home-heading"><h1>어떤 기사를<br>살펴볼까요?</h1></div><p class="intro">기사 속 주장과 근거를 비교해 보세요.</p><div class="home-workspace">
 <form id="article-form" class="input-box" novalidate>
 <div class="input-tabs" role="tablist" aria-label="기사 입력 방법"><button id="url-tab" type="button" role="tab" aria-selected="true" aria-controls="url-panel">기사 링크</button><button id="text-tab" type="button" role="tab" aria-selected="false" aria-controls="text-panel" tabindex="-1">본문 붙여넣기</button></div>
 <div id="url-panel" role="tabpanel" aria-labelledby="url-tab"><label class="field-label" for="article-url">기사 주소</label><input id="article-url" class="field" type="url" inputmode="url" placeholder="https://" aria-describedby="form-message" autocomplete="off"></div>
 <div id="text-panel" role="tabpanel" aria-labelledby="text-tab" hidden><label class="field-label" for="article-text">기사 본문</label><textarea id="article-text" class="field" placeholder="읽고 있는 기사의 본문을 붙여넣으세요" aria-describedby="form-message"></textarea></div>
 <button id="analyze-button" class="primary" type="submit">쟁점과 관점 보기</button>
 <div id="loading" class="loading" hidden><span class="spinner" aria-hidden="true"></span><span>기사를 분석하고 관련 자료를 찾고 있어요</span></div><button id="cancel-analysis" class="text-btn" type="button" hidden>분석 취소</button><p id="form-message" class="helper" role="status" aria-live="polite"></p>
-</form></div></section>
+</form><aside class="home-recent" aria-labelledby="recent-title"><div class="section-heading"><h2 id="recent-title">저장한 기사</h2><button type="button" data-go="history">전체 보기</button></div><div id="recent-records"></div><p id="recent-message" class="recent-status" role="status"></p></aside></div></div></section>
 <section id="result" class="screen" aria-label="분석 결과"><div class="result">
-<button class="back" data-go="home">← 다른 기사 분석</button>
-<article class="original article-card"><p id="result-meta" class="meta"></p><h1 id="result-title" class="result-title" tabindex="-1"></h1><figure id="article-figure" class="article-figure" hidden></figure><div class="summary-block"><span class="summary-label">핵심 요약</span><p id="result-summary" class="result-summary"></p></div><div id="original-input"></div><p id="result-notice" class="notice"></p></article>
-<div class="result-actions"><div id="analysis-counts" class="analysis-counts" aria-label="분석 개요"></div><button id="save-record" class="secondary save">기사 저장</button></div><p id="save-message" class="helper" role="status" aria-live="polite"></p>
+<div class="result-toolbar"><button id="result-back" class="back" data-go="home">기사 입력으로</button><button id="save-record" class="secondary save">기사 저장</button></div><p id="save-message" class="helper" role="status" aria-live="polite"></p>
+<div class="result-layout"><div class="article-overview"><article class="original article-card"><div class="article-heading"><div class="article-title-copy"><p id="result-meta" class="meta"></p><h1 id="result-title" class="result-title" tabindex="-1"></h1></div><figure id="article-figure" class="article-figure" hidden></figure></div><div class="summary-block"><span class="summary-label">기사 요약</span><p id="result-summary" class="result-summary"></p><button id="toggle-summary" class="text-btn" type="button" aria-expanded="false" aria-controls="result-summary" hidden>더 보기</button></div><div id="original-input"></div><p id="result-notice" class="notice"></p></article><div id="analysis-counts" class="analysis-counts" aria-label="분석 개요"></div></div>
+<div class="comparison-content">
 <div class="result-tabs" role="tablist" aria-label="분석 결과 보기"><button id="issues-tab" role="tab" aria-selected="true" aria-controls="issue-panel">관점 비교</button><button id="sources-tab" role="tab" aria-selected="false" aria-controls="all-sources" tabindex="-1">참고 출처</button></div>
 <div id="issue-panel" role="tabpanel" aria-labelledby="issues-tab" tabindex="0"><div id="issues"></div><div id="legacy-result" class="legacy-text" hidden></div></div><div id="all-sources" role="tabpanel" aria-labelledby="sources-tab" tabindex="0" hidden></div>
-</div></section>
-<section id="history" class="screen" aria-label="저장한 기사"><div class="history"><h1 id="history-title" tabindex="-1">저장한 기사</h1><p class="intro">이 브라우저에 저장한 분석을 다시 볼 수 있어요.</p><p id="history-message" class="helper" role="status" aria-live="polite"></p><div id="records"></div></div></section>
+</div></div></div></section>
+<section id="history" class="screen" aria-label="저장한 기사"><div class="history"><div class="history-heading"><h1 id="history-title" tabindex="-1">저장한 기사</h1><span id="history-count" class="history-count"></span></div><p class="intro">저장한 분석을 다시 읽어보세요.</p><div id="history-tools" class="history-tools" hidden><label class="field-label" for="history-search">기사 제목 검색</label><div class="history-search-row"><input id="history-search" class="field" type="search" placeholder="찾고 싶은 기사 제목" autocomplete="off"><button id="clear-search" class="text-btn" type="button" hidden>지우기</button></div></div><p id="history-message" class="helper" role="status" aria-live="polite"></p><div id="records"></div><div id="delete-notice" class="delete-notice" role="status" hidden><span>기사를 삭제했어요.</span><button id="undo-delete" class="text-btn" type="button">되돌리기</button></div><p class="storage-note">기록은 현재 브라우저에 저장됩니다.</p></div></section>
 </main></div><script>
 'use strict';
 const $ = selector => document.querySelector(selector);
@@ -75,6 +61,8 @@ let inputMode = 'url';
 let storageWarning = '';
 let storageReadable = true;
 let records = readRecords();
+let resultReturnScreen = 'home';
+let lastDeletedRecord = null;
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -109,8 +97,8 @@ function renderArticleImage(image, articleUrl) {
   const caption = element('figcaption');
   const credit = safe.credit.trim() || new URL(safe.url).hostname;
   const sourceUrl = safe.sourceUrl || safeUrl(articleUrl);
-  if (sourceUrl) caption.append(sourceLink({title:'이미지 출처 · ' + credit,url:sourceUrl}));
-  else caption.textContent = '이미지 출처 · ' + credit;
+  if (sourceUrl) caption.append(sourceLink({title:'사진 · ' + credit,url:sourceUrl}));
+  else caption.textContent = '사진 · ' + credit;
   photo.addEventListener('load',()=>{if (figure.contains(photo)) media.classList.add('loaded');});
   photo.addEventListener('error',()=>{if (figure.contains(photo)) {figure.hidden=true;figure.replaceChildren();}});
   figure.append(media,caption); figure.hidden=false; photo.src=safe.url;
@@ -170,16 +158,28 @@ function normalizeAnalysis(data) {
 function cleanInput(input) {
   return {url: isObject(input) && typeof input.url === 'string' ? input.url : '', text: isObject(input) && typeof input.text === 'string' ? input.text : ''};
 }
-function show(name) {
+function show(name, options = {}) {
+  if (!['home','result','history'].includes(name)) name = 'home';
+  if (name === 'result' && !currentResult) name = 'home';
+  const previous = document.querySelector('.screen.active')?.id;
   $('#page-shell').classList.toggle('is-home', name === 'home');
   document.querySelectorAll('.screen').forEach(node => node.classList.toggle('active', node.id === name));
   if (name === 'history') { records = readRecords(); renderHistory(); }
+  if (name === 'home') { records = readRecords(); renderRecentRecords(); }
   document.querySelectorAll('header [data-go]').forEach(button => {
     if (button.dataset.go === (name === 'history' ? 'history' : 'home')) button.setAttribute('aria-current','page');
     else button.removeAttribute('aria-current');
   });
   const focus = name === 'result' ? $('#result-title') : name === 'history' ? $('#history-title') : inputMode === 'text' ? $('#article-text') : $('#article-url');
   focus.focus({preventScroll:true}); window.scrollTo(0,0);
+  document.title = name === 'home' ? 'GRAY — 뉴스 관점 비교' : name === 'history' ? '저장한 기사 — GRAY' : '분석 결과 — GRAY';
+  if (options.navigate !== false) {
+    const state = {gray:true,screen:name};
+    if (name === 'result') Object.assign(state,{result:currentResult,returnScreen:resultReturnScreen,resultTab:'issues'});
+    const address = new URL(location.href); address.hash = name;
+    if (previous !== name) history.pushState(state,'',address);
+    else history.replaceState(state,'',address);
+  }
 }
 function selectInputMode(mode, focus = true) {
   inputMode = mode;
@@ -194,25 +194,40 @@ function selectInputMode(mode, focus = true) {
 function renderIssue(issue, index, sources) {
   const card = element('details', 'issue'); card.open = index === 0;
   const summary = element('summary');
-  summary.append(element('span', 'issue-no', String(index + 1).padStart(2, '0')), element('span', '', issue.question));
+  summary.append(element('span', 'issue-no', String(index + 1).padStart(2, '0')), element('span', 'issue-question', issue.question));
   card.append(summary);
   const body = element('div', 'issue-body');
   if (issue.note) body.append(element('p', 'notice', issue.note));
   const thread = element('div', 'thread');
+  thread.dataset.views = String(issue.perspectives.length);
   for (const [viewIndex, view] of issue.perspectives.entries()) {
-    const opinion = element('article', 'opinion' + (viewIndex % 2 ? ' against' : ''));
-    opinion.append(element('div', 'label', view.actor || '관점 ' + (viewIndex + 1)));
-    const links = [...new Set(view.sourceIds)].map(id => sources.get(id)).filter(Boolean);
+    const opinion = element('article', 'opinion view-' + (viewIndex + 1));
+    const heading = element('div','perspective-heading');
+    const actor = element('h3','label',view.actor || '이름 없는 관점');
+    actor.id = 'view-heading-' + index + '-' + viewIndex;
+    opinion.setAttribute('aria-labelledby',actor.id);
+    heading.append(element('span','view-index','관점 ' + String(viewIndex + 1).padStart(2,'0')),actor);
+    opinion.append(heading);
+    const links = [...new Map(view.sourceIds.map(id => sources.get(id)).filter(Boolean).map(source => [source.url,source])).values()];
     const supported = links.length > 0 && view.evidence.trim() && view.claim.trim();
     if (supported) {
-      opinion.append(element('h3', '', view.claim), element('span', 'evidence-label', '근거'), element('p', '', view.evidence));
-      const sourceBox = element('div', 'source');
-      sourceBox.append(element('strong', '', '관련 출처'));
-      for (const source of links) sourceBox.append(sourceLink(source));
+      opinion.append(element('p','view-claim',view.claim));
+      const evidence = element('details','view-details'); evidence.open = matchMedia('(min-width:760px)').matches;
+      const disclosure = element('summary');
+      disclosure.append(element('span','view-detail-label','근거·출처'),element('span','view-detail-count',links.length + '개 자료'));
+      const evidenceBody = element('div','view-evidence');
+      evidenceBody.append(element('p','evidence-copy',view.evidence));
+      const sourceBox = element('div', 'source source-chips'); sourceBox.setAttribute('aria-label','이 주장의 근거 출처');
+      for (const source of links) {
+        const publisher = source.title.includes(' · ') ? source.title.split(' · ')[0] : new URL(source.url).hostname.replace(/^www\./,'');
+        const link = sourceLink({title:String(source.number).padStart(2,'0') + ' · ' + publisher,url:source.url});
+        link.className = 'source-chip'; link.setAttribute('aria-label',source.title + ' 원문 열기'); sourceBox.append(link);
+      }
       if (links.length && view.sourceIds.some(id => !sources.has(id))) sourceBox.append(element('p', '', '일부 출처를 확인하지 못했습니다.'));
-      opinion.append(sourceBox);
+      evidenceBody.append(sourceBox); evidence.append(disclosure,evidenceBody); opinion.append(evidence);
     } else {
-      opinion.append(element('h3', '', '자료 부족'), element('p', '', '이 관점은 주장과 근거를 뒷받침하는 출처를 확인하지 못했습니다.'));
+      opinion.classList.add('is-unverified');
+      opinion.append(element('p','view-claim','자료 부족'), element('p','evidence-copy','이 관점을 뒷받침하는 자료를 찾지 못했어요.'));
     }
     thread.append(opinion);
   }
@@ -233,7 +248,8 @@ function renderLegacy(data) {
   }
   node.append(document.createTextNode(chars.slice(cursor).join('')));
 }
-function selectResultTab(name, focus = false) {
+function selectResultTab(name, focus = false, syncRoute = true) {
+  $('#result').classList.toggle('is-sources',name === 'sources');
   for (const [key, panel] of [['issues','issue-panel'], ['sources','all-sources']]) {
     const active = name === key;
     const tab = $('#' + key + '-tab');
@@ -242,52 +258,71 @@ function selectResultTab(name, focus = false) {
     $('#' + panel).hidden = !active;
     if (active && focus) tab.focus();
   }
+  if (syncRoute && history.state?.gray && history.state.screen === 'result') history.replaceState({...history.state,resultTab:name},'',location.href);
+  requestAnimationFrame(updateSummaryDisclosure);
+}
+function updateSummaryDisclosure() {
+  const summary = $('#result-summary'); const toggle = $('#toggle-summary');
+  if (!$('#result').classList.contains('active') || !summary.getClientRects().length) return;
+  toggle.hidden = toggle.getAttribute('aria-expanded') !== 'true' && summary.scrollHeight <= summary.clientHeight + 1;
 }
 // A의 version 1 응답을 관점 카드로 표시한다.
 function renderAnalysis(raw, options = {}) {
   const analysis = normalizeAnalysis(raw);
   const kind = options.kind === 'review' ? 'review' : 'analysis';
   const input = cleanInput(options.input);
+  resultReturnScreen = options.returnScreen === 'history' || (!options.returnScreen && $('#history').classList.contains('active')) ? 'history' : 'home';
+  $('#result-back').dataset.go = resultReturnScreen;
+  $('#result-back').textContent = resultReturnScreen === 'history' ? '저장한 기사로' : '기사 입력으로';
   currentResult = {kind, input, analysis};
   $('#result-title').textContent = analysis.title || input.text.slice(0, 60) || '기사의 다양한 관점';
   $('#result-meta').textContent = kind === 'review' ? 'MBN · 수동 작성 결과' : '분석한 기사';
-  $('#result-notice').textContent = kind === 'review' ? '기사와 관련 자료를 읽고 수동 작성한 결과입니다. API 자동 분석은 아닙니다.' : '';
-  $('#result-summary').textContent = analysis.summary || '이전에 저장한 분석 내용을 아래에서 확인하세요.';
+  $('#result-notice').textContent = '';
+  $('#result-summary').textContent = analysis.summary || '';
+  $('#result-summary').classList.add('is-collapsed');
+  $('#toggle-summary').setAttribute('aria-expanded','false'); $('#toggle-summary').textContent='더 보기'; $('#toggle-summary').hidden=true;
+  $('.summary-block').hidden = !analysis.summary;
   renderArticleImage(analysis.articleImage,input.url);
   const original = $('#original-input'); original.replaceChildren();
   if (input.url || input.text) {
-    const details = element('details'); details.append(element('summary', '', '내가 입력한 기사 확인'));
     const url = safeUrl(input.url);
-    if (url) details.append(sourceLink({title: '입력 기사 원문', url}));
-    if (input.text) details.append(element('p', 'input-preview', input.text));
-    original.append(details);
+    if (url) { const link = sourceLink({title:'기사 원문 열기',url}); link.className='original-link'; original.append(link); }
+    if (input.text) { const details = element('details');details.append(element('summary','','입력한 본문'),element('p','input-preview',input.text));original.append(details); }
   }
   $('#issues').replaceChildren(); $('#legacy-result').replaceChildren(); $('#legacy-result').hidden = true;
   const counts = $('#analysis-counts'); counts.replaceChildren();
+  const sourceURLs = new Map(); const sources = new Map();
+  for (const source of analysis.sources) {
+    if (!sourceURLs.has(source.url)) sourceURLs.set(source.url,{...source,number:sourceURLs.size+1});
+    sources.set(source.id,sourceURLs.get(source.url));
+  }
   if (analysis.version === 1) {
-    for (const [label, count] of [['쟁점',analysis.issues.length], ['관점',analysis.issues.reduce((sum, issue) => sum + issue.perspectives.length, 0)], ['출처',analysis.sources.length]]) {
+    for (const [label, count] of [['쟁점',analysis.issues.length], ['관점',analysis.issues.reduce((sum, issue) => sum + issue.perspectives.length, 0)]]) {
       const item = element('span'); item.append(document.createTextNode(label + ' '),element('strong','',String(count))); counts.append(item);
     }
   } else {
-    const item = element('span'); item.append(document.createTextNode('출처 '),element('strong','',String(analysis.sources.length))); counts.append(item);
+    counts.append(element('span','','이전에 저장한 분석'));
   }
-  const sources = new Map(analysis.sources.map(source => [source.id, source]));
   if (analysis.version === 1) {
     for (const [index, issue] of analysis.issues.entries()) $('#issues').append(renderIssue(issue, index, sources));
     if (!analysis.issues.length) $('#issues').append(element('p', 'notice', '관련 자료에서 비교할 쟁점을 찾지 못했습니다.'));
   } else renderLegacy(analysis);
   const allSources = $('#all-sources'); allSources.replaceChildren();
-  if (!analysis.sources.length) allSources.append(element('p', 'empty', '연결된 출처가 없어요.'));
-  for (const [index, source] of analysis.sources.entries()) {
+  allSources.append(element('p','source-list-intro','각 주장의 출처 번호와 연결된 자료입니다. 누르면 원문이 열립니다.'));
+  if (!sourceURLs.size) allSources.append(element('p', 'empty', '연결된 출처가 없어요.'));
+  $('#sources-tab').textContent = '출처 목록 ' + sourceURLs.size;
+  for (const source of sourceURLs.values()) {
     const link = sourceLink(source); link.className = 'source-card'; link.replaceChildren();
-    link.append(element('span','source-index',String(index + 1).padStart(2,'0')));
+    link.append(element('span','source-index',String(source.number).padStart(2,'0')));
     const copy = element('span','source-copy'); copy.append(element('strong','',source.title),element('small','',new URL(source.url).hostname));
     link.append(copy,element('span','source-arrow','↗')); allSources.append(link);
   }
-  selectResultTab('issues');
+  $('#issues-tab').textContent = analysis.version === 1 ? '관점 비교' : '분석 내용';
+  selectResultTab('issues',false,false);
   $('#save-message').textContent = ''; $('#save-message').className = 'helper';
   setSaveLabel(records.some(record => fingerprint(record) === fingerprint(currentResult)) ? '저장한 기사 보기' : '기사 저장');
-  show('result');
+  show('result',{navigate:options.navigate});
+  requestAnimationFrame(updateSummaryDisclosure);
 }
 
 function storageArray(key) {
@@ -334,17 +369,28 @@ function persistRecords(next) {
 function renderHistory() {
   const list = $('#records'); list.replaceChildren();
   $('#history-message').textContent = storageWarning;
+  $('#history-count').textContent = records.length + '개';
+  $('#history-tools').hidden = !records.length;
+  $('#delete-notice').hidden = !lastDeletedRecord;
+  const query = $('#history-search').value.trim().toLocaleLowerCase();
+  $('#clear-search').hidden = !query;
+  const visible = records.filter(record => recordTitle(record).toLocaleLowerCase().includes(query));
   if (!records.length) {
     const empty=element('div','empty-state'); empty.append(element('h2','','아직 저장한 기사가 없어요'),element('p','','분석 결과에서 ‘기사 저장’을 눌러 모아보세요.'));
     const start=element('button','secondary','기사 분석하러 가기');start.type='button';start.addEventListener('click',()=>show('home'));empty.append(start);list.append(empty);
   }
-  for (const record of records) {
+  if (records.length && !visible.length) {
+    const empty=element('div','empty-state');empty.append(element('h2','','검색 결과가 없어요'),element('p','','다른 제목으로 검색해 보세요.'));
+    const clear=element('button','secondary','전체 기사 보기');clear.type='button';clear.addEventListener('click',clearHistorySearch);empty.append(clear);list.append(empty);
+  }
+  for (const record of visible) {
     const row = element('div', 'record');
     const open = element('button', 'record-open'); open.type = 'button'; open.dataset.record = record.id;
-    const title = record.analysis.title || record.input.text.slice(0, 60) || '이전 분석 결과';
+    const title = recordTitle(record);
     const date = Date.parse(record.savedAt);
     const copy = element('span','record-copy');
-    copy.append(element('strong', '', title), element('small', '', (Number.isFinite(date) ? new Date(date).toLocaleDateString('ko-KR') : '저장 날짜 없음') + (record.kind === 'review' ? ' · FE 검사' : '')));
+    const detail = record.analysis.version === 1 ? ' · 쟁점 ' + record.analysis.issues.length + '개' : '';
+    copy.append(element('strong', '', title), element('small', '', (Number.isFinite(date) ? new Date(date).toLocaleDateString('ko-KR') : '저장 날짜 없음') + detail));
     const image = normalizeArticleImage(record.analysis.articleImage);
     if (image) {
       const photo=element('img','record-photo'); photo.alt='';photo.width=64;photo.height=64;photo.loading='lazy';photo.referrerPolicy='no-referrer';
@@ -353,6 +399,46 @@ function renderHistory() {
     open.append(copy);
     const remove = element('button', 'record-delete', '삭제'); remove.type = 'button'; remove.dataset.delete = record.id;
     remove.setAttribute('aria-label', title + ' 기록 삭제'); row.append(open, remove); list.append(row);
+  }
+}
+function recordTitle(record) { return record.analysis.title || record.input.text.slice(0,60) || '이전 분석 결과'; }
+function clearHistorySearch() { $('#history-search').value='';renderHistory();$('#history-search').focus(); }
+function deleteRecord(id) {
+  try {
+    records=readRecords();const record=records.find(item=>item.id===id);if(!record){renderHistory();return;}
+    persistRecords(records.filter(item=>item.id!==id));lastDeletedRecord=record;renderHistory();
+    ($('#records .record-open') || $('#undo-delete')).focus();
+  } catch(error) { $('#history-message').textContent=error.message; }
+}
+function undoDelete() {
+  if(!lastDeletedRecord)return;
+  try {
+    records=readRecords();const restored=lastDeletedRecord;
+    if(!records.some(item=>item.id===restored.id || fingerprint(item)===fingerprint(restored))) persistRecords([restored,...records]);
+    lastDeletedRecord=null;records=readRecords();$('#history-search').value='';renderHistory();
+    $('#history-message').textContent='삭제한 기사를 복원했어요.';$('#records .record-open')?.focus();
+  } catch(error) { $('#history-message').textContent=error.message; }
+}
+function renderRecentRecords() {
+  const list = $('#recent-records'); list.replaceChildren();
+  $('#recent-message').textContent = storageWarning;
+  if (!records.length) {
+    const empty = element('div','recent-empty');
+    empty.append(element('p','','다시 읽고 싶은 기사를 모아보세요'),element('small','','분석 결과에서 저장할 수 있어요.'));
+    list.append(empty); return;
+  }
+  for (const record of records.slice(0,2)) {
+    const open = element('button','recent-entry'); open.type='button'; open.dataset.record=record.id;
+    const copy = element('span','recent-copy');
+    const date = Date.parse(record.savedAt);
+    copy.append(element('strong','',record.analysis.title || record.input.text.slice(0,60) || '이전 분석 결과'),element('small','',Number.isFinite(date) ? new Date(date).toLocaleDateString('ko-KR') : '저장한 기사'));
+    open.append(copy);
+    const image = normalizeArticleImage(record.analysis.articleImage);
+    if (image) {
+      const photo=element('img','recent-photo');photo.alt='';photo.width=58;photo.height=64;photo.loading='lazy';photo.referrerPolicy='no-referrer';
+      photo.addEventListener('error',()=>photo.remove());photo.src=image.url;open.append(photo);
+    }
+    list.append(open);
   }
 }
 function fingerprint(result) { return JSON.stringify({kind: result.kind, input: result.input, analysis: result.analysis}); }
@@ -419,6 +505,12 @@ async function submitArticle(event) {
 $('#article-form').addEventListener('submit', submitArticle);
 $('#cancel-analysis').addEventListener('click', () => pendingRequest?.controller.abort());
 $('#save-record').addEventListener('click', saveRecord);
+$('#toggle-summary').addEventListener('click',()=>{
+  const expanded = $('#toggle-summary').getAttribute('aria-expanded') !== 'true';
+  $('#toggle-summary').setAttribute('aria-expanded',String(expanded));$('#toggle-summary').textContent=expanded?'접기':'더 보기';
+  $('#result-summary').classList.toggle('is-collapsed',!expanded);
+});
+window.addEventListener('resize',updateSummaryDisclosure);
 for (const name of ['url','text']) {
   const tab=$('#' + name + '-tab');tab.addEventListener('click',()=>selectInputMode(name));
   tab.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const next=event.key==='Home'?'url':event.key==='End'?'text':name==='url'?'text':'url';selectInputMode(next,false);$('#'+next+'-tab').focus();});
@@ -434,11 +526,38 @@ document.querySelectorAll('[data-go]').forEach(button=>button.addEventListener('
 $('#brand').addEventListener('click',event=>{event.preventDefault();show('home');});
 $('#records').addEventListener('click',event=>{
   const open=event.target.closest('[data-record]');const remove=event.target.closest('[data-delete]');
-  if(open){const record=records.find(item=>item.id===open.dataset.record);if(record)renderAnalysis(record.analysis,record);}
-  else if(remove){try{records=readRecords();persistRecords(records.filter(item=>item.id!==remove.dataset.delete));renderHistory();$('#history-message').textContent='기사를 삭제했어요.';($('#records button')||$('#history-title')).focus();}catch(error){$('#history-message').textContent=error.message;}}
+  if(open){records=readRecords();const record=records.find(item=>item.id===open.dataset.record);if(record)renderAnalysis(record.analysis,record);else renderHistory();}
+  else if(remove)deleteRecord(remove.dataset.delete);
 });
-window.addEventListener('storage',event=>{if([RECORDS_KEY,'gray-live-records',null].includes(event.key)){records=readRecords();if($('#history').classList.contains('active'))renderHistory();}});
+$('#history-search').addEventListener('input',renderHistory);
+$('#clear-search').addEventListener('click',clearHistorySearch);
+$('#undo-delete').addEventListener('click',undoDelete);
+$('#recent-records').addEventListener('click',event=>{
+  const open=event.target.closest('[data-record]');if(!open)return;
+  records=readRecords();const record=records.find(item=>item.id===open.dataset.record);
+  if(record)renderAnalysis(record.analysis,record);else renderRecentRecords();
+});
+window.addEventListener('storage',event=>{if([RECORDS_KEY,'gray-live-records',null].includes(event.key)){records=readRecords();if($('#history').classList.contains('active'))renderHistory();if($('#home').classList.contains('active'))renderRecentRecords();}});
+renderRecentRecords();
 const reviewParams = new URLSearchParams(location.search);
 if (reviewParams.get('review') === 'mbn') $('#article-url').value = REVIEW_ARTICLE_URL;
-if (reviewParams.get('review') === 'mbn' && reviewParams.get('screen') === 'result') openReviewResult({url:REVIEW_ARTICLE_URL,text:''});
+function restoreScreen(state) {
+  if (state?.gray && state.screen === 'result' && state.result) {
+    try {
+      const input = cleanInput(state.result.input);
+      if (!$('#article-url').value) $('#article-url').value=input.url;
+      if (!$('#article-text').value) $('#article-text').value=input.text;
+      if (input.text && !input.url) selectInputMode('text',false);
+      renderAnalysis(state.result.analysis,{...state.result,returnScreen:state.returnScreen,navigate:false});selectResultTab(state.resultTab || 'issues',false,false);return;
+    } catch {}
+  }
+  show(state?.gray && state.screen === 'history' || location.hash === '#history' ? 'history' : 'home',{navigate:false});
+}
+window.addEventListener('popstate',event=>restoreScreen(event.state));
+if (history.state?.gray) restoreScreen(history.state);
+else if (location.hash === '#history') show('history',{navigate:false});
+else if (reviewParams.get('review') === 'mbn' && reviewParams.get('screen') === 'result' && location.hash !== '#home') {
+  history.replaceState({gray:true,screen:'home'},'',location.href);
+  openReviewResult({url:REVIEW_ARTICLE_URL,text:''});
+} else history.replaceState({gray:true,screen:'home'},'',location.href);
 </script></body></html>
