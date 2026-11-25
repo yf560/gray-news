@@ -13,12 +13,12 @@ details.issue{border:1px solid var(--line);margin-bottom:14px;overflow:hidden}su
 .article-card{background:#fff;border:1px solid #e5e8eb}.article-card .meta{display:inline-block;color:#2874db;font-weight:600;margin-bottom:9px}.article-figure{margin:18px 0 0}.article-media{aspect-ratio:16/9;background:#f3f5f8;overflow:hidden}.article-photo{display:block;width:100%;height:100%;object-fit:cover;opacity:0}.article-media.loaded .article-photo{opacity:1}.article-figure figcaption{font-size:10px;color:#8b95a1;margin-top:5px;text-align:right}.article-figure figcaption a{display:inline-block;padding:0;font-size:10px;color:#8b95a1;text-decoration:none}.article-figure figcaption a:hover{color:#2874db;text-decoration:underline}.summary-block{margin-top:18px;padding:13px 15px;background:#f6f8fb;border-left:2px solid #b7d2fb}.summary-block .summary-label{color:#2874db;font-size:11px;font-weight:650;margin:0}.summary-block .result-summary{margin-top:5px;font-size:13px;line-height:1.85}.article-card #result-notice{background:none;padding:0;margin-top:12px;font-size:11px;color:#8b95a1}.original details{margin-top:13px}.result-actions{padding:14px 0;border-bottom:1px solid #edf0f3;margin:8px 0 0}.analysis-counts{gap:0}.analysis-counts>span{padding:0 11px;border-right:1px solid #e5e8eb}.analysis-counts>span:first-child{padding-left:0}.analysis-counts>span:last-child{border:0}.analysis-counts strong{font-size:13px}.save{display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap}.save-icon{display:flex;align-items:center}.save-icon svg{width:17px;height:17px}.result-tabs{margin-top:14px}details.issue>summary .issue-no{display:grid;place-items:center;background:#edf4ff;width:24px;min-width:24px;height:24px;padding:0;font-size:11px}.record .record-open{display:flex;align-items:center;gap:14px}.record-copy{display:block;min-width:0;flex:1}.record-photo{display:block;flex-shrink:0;width:64px;height:64px;object-fit:cover}
 @media(max-width:420px){.home-heading{gap:12px}.home-heading h1{max-width:220px}.home-art{width:84px;height:84px}.analysis-counts>span{padding:0 8px}.save{font-size:12px;gap:5px;min-width:0;padding:11px}.article-figure{margin-top:15px}.summary-block{padding:12px}.record .record-open{gap:11px}.record-photo{width:54px;height:54px}}
 @media(min-width:760px){.article-media{max-height:300px}.home-art{width:128px;height:112px}}
-</style></head>
-<body><div class="shell" id="page-shell">
+</style><link rel="stylesheet" href="assets/home.css"></head>
+<body><div class="shell is-home" id="page-shell">
 <header><a href="#home" class="brand" id="brand" aria-label="GRAY 홈"><img class="brand-symbol" src="assets/gray-mark.svg" width="28" height="28" alt="" aria-hidden="true"><span>GRAY</span></a><nav class="header-nav" aria-label="주 메뉴"><button data-go="home" aria-current="page">기사 분석</button><button data-go="history">저장한 기사</button></nav></header>
 <main>
 <section id="home" class="screen active" aria-label="기사 분석"><div class="hero">
-<div class="home-heading"><h1>어떤 기사를 살펴볼까요?</h1><img class="home-art" src="assets/article-perspectives.svg" width="128" height="112" alt="" aria-hidden="true"></div><p class="intro">기사의 쟁점과 서로 다른 관점을 비교해 보세요.</p>
+<div class="home-heading"><h1>같은 뉴스,<br>다른 시각</h1></div><p class="intro">쟁점과 근거를 함께 읽다</p>
 <form id="article-form" class="input-box" novalidate>
 <div class="input-tabs" role="tablist" aria-label="기사 입력 방법"><button id="url-tab" type="button" role="tab" aria-selected="true" aria-controls="url-panel">기사 링크</button><button id="text-tab" type="button" role="tab" aria-selected="false" aria-controls="text-panel" tabindex="-1">본문 붙여넣기</button></div>
 <div id="url-panel" role="tabpanel" aria-labelledby="url-tab"><label class="field-label" for="article-url">기사 주소</label><input id="article-url" class="field" type="url" inputmode="url" placeholder="https://" aria-describedby="form-message" autocomplete="off"></div>
@@ -171,6 +171,7 @@ function cleanInput(input) {
   return {url: isObject(input) && typeof input.url === 'string' ? input.url : '', text: isObject(input) && typeof input.text === 'string' ? input.text : ''};
 }
 function show(name) {
+  $('#page-shell').classList.toggle('is-home', name === 'home');
   document.querySelectorAll('.screen').forEach(node => node.classList.toggle('active', node.id === name));
   if (name === 'history') { records = readRecords(); renderHistory(); }
   document.querySelectorAll('header [data-go]').forEach(button => {
