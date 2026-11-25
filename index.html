@@ -32,44 +32,35 @@ details.issue{border:1px solid var(--line);margin-bottom:14px;overflow:hidden}su
 </main></div><script>
 'use strict';
 const $ = selector => document.querySelector(selector);
-// 임시 FE 검수용. 이 주소만 API 대신 지정한 결과를 사용한다.
+// 임시 FE 검수용. 이 MBN 주소만 API 대신 수동 정리한 결과를 사용한다.
 const REVIEW_ARTICLE_URL = 'https://www.mbn.co.kr/vod/programView/1434541';
-const REVIEW_SOURCES = {
-  R1:{title:'시설 이용 시간 조사 · 검사용',body:'운영 시간이 늘어나면 낮 시간에 방문하기 어려운 이용자도 시설을 이용할 수 있다는 가상 자료입니다.'},
-  R2:{title:'운영 인력·비용 검토 · 검사용',body:'운영 시간 확대에는 인력 배치와 추가 운영비 검토가 필요하다는 가상 자료입니다.'},
-  R3:{title:'단계별 시범 운영안 · 검사용',body:'일부 시설에서 먼저 운영 시간을 늘린 뒤 이용 현황을 살펴보자는 가상 제안입니다.'}
+const MBN_REVIEW_ANALYSIS = {
+  version:1,
+  title:'김주애의 고가 스키 장비, 제재 쟁점은?',
+  summary:'MBN은 김주애가 착용한 스키 장비를 둘러싼 대북 사치품 제재 논란을 전했습니다. 미국 정부의 반입 금지 입장과 제조사의 거래 부인, 우회 유통 가능성이 함께 다뤄졌습니다.',
+  issues:[
+    {question:'스키 장비는 사치품 제재에 포함될까?',perspectives:[
+      {actor:'제재 규정',claim:'여가용 스포츠 장비도 반입 금지 대상이다',evidence:'유엔 안보리 결의 2270호는 여가용 스포츠 장비를 사치품 목록에 포함합니다. MBC는 미 국무부가 스키 장비에도 이 원칙을 적용했다고 보도했습니다.',sourceIds:['R2','R3']},
+      {actor:'사진의 확인 범위',claim:'사진만으로 제품과 유통 경로까지 확정할 수는 없다',evidence:'뉴스핌은 제조사들이 공개 사진만으로 정품 여부나 유통 경로를 확인할 수 없다고 설명했다고 전했습니다.',sourceIds:['R4']}
+    ],note:null},
+    {question:'제조사와 우회 유통의 책임은 어떻게 볼까?',perspectives:[
+      {actor:'제조사 입장',claim:'북한에서 사용됐다고 직접 판매한 것은 아니다',evidence:'MBN과 뉴스핌은 장비 제조사들이 북한과 사업·유통 관계가 없다고 해명했다고 보도했습니다.',sourceIds:['R1','R4']},
+      {actor:'제재 이행',claim:'제3국을 거친 공급도 점검해야 한다',evidence:'MBN은 제3국 중개인 등을 통한 우회 반입도 제재 위반이라는 VOA의 지적을 전했습니다. MBC 보도 역시 직·간접 공급 차단 의무를 다뤘습니다.',sourceIds:['R1','R3']}
+    ],note:null}
+  ],
+  sources:[
+    {id:'R1',title:'MBN · 김주애가 뽐낸 고가 스키 장비…미 국무 “반입 금지품”',url:REVIEW_ARTICLE_URL},
+    {id:'R2',title:'유엔 · 안보리 결의 2270호 사치품 목록',url:'https://mandates.un.org/mandate/S/RES/2270%20%282016%29?subject=Consumer+Goods'},
+    {id:'R3',title:'MBC · 미 국무부의 스키 장비 제재 입장',url:'https://imnews.imbc.com/news/2026/world/article/6868402_36925.html'},
+    {id:'R4',title:'뉴스핌 · 제조사 해명과 유통 경로 확인 문제',url:'https://web3.newspim.com/news/view/20261125000111'}
+  ]
 };
-const reviewSourceUrl = id => new URL('?review-source=' + encodeURIComponent(id), location.href).href;
 function matchesReviewArticle(url) {
   const safe = safeUrl(url); if (!safe) return false;
   const parsed = new URL(safe);
   return parsed.hostname === 'www.mbn.co.kr' && parsed.pathname.replace(/\/$/,'') === '/vod/programView/1434541';
 }
-function openReviewResult(input) {
-  renderAnalysis({version:1,title:'공공시설 운영 시간 확대, 기대와 우려',
-    summary:'운영 시간을 늘려 이용 기회를 넓히자는 의견과 인력·비용을 먼저 살펴야 한다는 의견을 비교합니다.',
-    issues:[
-      {question:'운영 시간을 늘리면 더 편리해질까?',perspectives:[
-        {actor:'이용자 관점',claim:'퇴근 후에도 시설을 이용할 수 있다',evidence:'이용 시간 조사에서는 낮 시간에 방문하기 어려운 사람들의 수요를 다룹니다.',sourceIds:['R1']},
-        {actor:'운영 관점',claim:'인력과 예산을 함께 확보해야 한다',evidence:'운영비 검토 자료는 인력 배치와 추가 비용 검토를 제안합니다.',sourceIds:['R2']}
-      ],note:null},
-      {question:'전면 확대와 시범 운영 중 무엇이 나을까?',perspectives:[
-        {actor:'단계적 확대',claim:'일부 시설부터 먼저 시도할 수 있다',evidence:'시범 운영안은 이용 현황을 확인한 뒤 확대 여부를 정하는 방식입니다.',sourceIds:['R3']},
-        {actor:'즉시 확대',claim:'검증되지 않은 주장',evidence:'연결된 근거 없음',sourceIds:[]}
-      ],note:'두 번째 관점은 자료 부족 상태를 확인하기 위한 항목입니다.'}
-    ],sources:Object.entries(REVIEW_SOURCES).map(([id,item])=>({id,title:item.title,url:reviewSourceUrl(id)}))
-  },{kind:'review',input});
-}
-function openReviewSource(id) {
-  if (!Object.hasOwn(REVIEW_SOURCES,id)) return;
-  const source=REVIEW_SOURCES[id];
-  const panel=element('section','screen');panel.id='review-source';panel.setAttribute('aria-label','검사용 출처');
-  const content=element('div','result');
-  const back=element('button','back','← 기사 입력으로');back.type='button';back.addEventListener('click',()=>show('home'));
-  const title=element('h1','result-title',source.title);title.tabIndex=-1;
-  content.append(back,title,element('p','notice','FE 검사용 가상 자료입니다.'),element('p','result-summary',source.body));panel.append(content);document.querySelector('main').append(panel);
-  document.querySelectorAll('.screen').forEach(node=>node.classList.toggle('active',node===panel));title.focus({preventScroll:true});
-}
+function openReviewResult(input) { renderAnalysis(MBN_REVIEW_ANALYSIS,{kind:'review',input}); }
 const RECORDS_KEY = 'gray-records-v1';
 const REQUEST_TIMEOUT_MS = 130000;
 let currentResult = null;
@@ -221,8 +212,8 @@ function renderAnalysis(raw, options = {}) {
   const input = cleanInput(options.input);
   currentResult = {kind, input, analysis};
   $('#result-title').textContent = analysis.title || input.text.slice(0, 60) || '기사의 다양한 관점';
-  $('#result-meta').textContent = kind === 'review' ? 'FE 검사용 임시 결과' : '분석한 기사';
-  $('#result-notice').textContent = kind === 'review' ? '임시 데이터입니다. 입력한 MBN 기사를 분석한 결과가 아닙니다.' : '';
+  $('#result-meta').textContent = kind === 'review' ? 'MBN · 수동 작성 결과' : '분석한 기사';
+  $('#result-notice').textContent = kind === 'review' ? '기사와 관련 자료를 읽고 수동 작성한 결과입니다. API 자동 분석은 아닙니다.' : '';
   $('#result-summary').textContent = analysis.summary || '이전에 저장한 분석 내용을 아래에서 확인하세요.';
   const original = $('#original-input'); original.replaceChildren();
   if (input.url || input.text) {
@@ -276,6 +267,7 @@ function readRecords() {
       const ids = new Set();
       for (const item of saved) {
         if (isObject(item) && ['demo','sample'].includes(item.kind)) continue;
+        if (isObject(item) && item.kind === 'review' && item.analysis?.title === '공공시설 운영 시간 확대, 기대와 우려') continue;
         try {
           if (!isObject(item) || typeof item.id !== 'string' || ids.has(item.id)) throw new Error('기록 형식 오류');
           valid.push({id: item.id, savedAt: typeof item.savedAt === 'string' ? item.savedAt : '', input: cleanInput(item.input), kind: item.kind === 'review' ? 'review' : 'analysis', analysis: normalizeAnalysis(item.analysis)});
@@ -402,5 +394,5 @@ $('#records').addEventListener('click',event=>{
 window.addEventListener('storage',event=>{if([RECORDS_KEY,'gray-live-records',null].includes(event.key)){records=readRecords();if($('#history').classList.contains('active'))renderHistory();}});
 const reviewParams = new URLSearchParams(location.search);
 if (reviewParams.get('review') === 'mbn') $('#article-url').value = REVIEW_ARTICLE_URL;
-if (reviewParams.has('review-source')) openReviewSource(reviewParams.get('review-source'));
+if (reviewParams.get('review') === 'mbn' && reviewParams.get('screen') === 'result') openReviewResult({url:REVIEW_ARTICLE_URL,text:''});
 </script></body></html>
