@@ -1,13 +1,13 @@
 # EXAONE + Tavily 전환
 
-실제 분석은 아래 PowerShell 환경변수 설정 후 실행합니다.
+실제 분석은 프로젝트 루트의 `.env`에 키를 넣고 실행합니다.
 
-    $env:EXAONE_API_KEY = "발급받은 엑사원 키"
-    $env:TAVILY_API_KEY = "발급받은 Tavily 키"
+    EXAONE_API_KEY=발급받은_엑사원_키
+    TAVILY_API_KEY=발급받은_Tavily_키
     py server.py
 
-선택 환경변수: EXAONE_MODEL (기본값 k-exaone_v2.5).
-.env 파일은 자동으로 읽지 않습니다. 키는 서버 환경변수에만 설정합니다.
+선택 환경변수: EXAONE_MODEL (기본값 k-exaone_v2.5). 셸에 같은 변수가 있으면 셸 값이 우선합니다.
+`.env`는 Git에서 제외합니다. 키를 커밋하거나 프론트 코드에 넣지 마세요.
 
 처리 흐름: URL 본문 추출 → 엑사원 검색어 생성 → Tavily 검색 최대 3회 → 엑사원 관점 분석 → 출처 ID 검증.
 본문을 직접 입력하면 URL 추출을 생략합니다. 추출 실패 시 본문 붙여넣기를 안내합니다.
