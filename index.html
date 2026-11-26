@@ -14,11 +14,11 @@
 </form><aside class="home-recent" aria-labelledby="recent-title"><div class="section-heading"><h2 id="recent-title">저장한 기사</h2><button type="button" data-go="history">전체 보기</button></div><div id="recent-records"></div><p id="recent-message" class="recent-status" role="status"></p></aside></div></div></section>
 <section id="result" class="screen" aria-label="분석 결과"><div class="result">
 <div class="result-toolbar"><button id="result-back" class="back" data-go="home">기사 입력으로</button><button id="save-record" class="secondary save">기사 저장</button></div><p id="save-message" class="helper" role="status" aria-live="polite"></p>
-<div class="result-layout"><div class="article-overview"><article class="original article-card"><div class="article-heading"><div class="article-title-copy"><p id="result-meta" class="meta"></p><h1 id="result-title" class="result-title" tabindex="-1"></h1></div><figure id="article-figure" class="article-figure" hidden></figure></div><div class="summary-block"><span class="summary-label">기사 요약</span><p id="result-summary" class="result-summary"></p><button id="toggle-summary" class="text-btn" type="button" aria-expanded="false" aria-controls="result-summary" hidden>더 보기</button></div><div id="original-input"></div><p id="result-notice" class="notice"></p></article><div id="analysis-counts" class="analysis-counts" aria-label="분석 개요"></div></div>
+<div class="result-layout"><div class="article-overview"><article class="original article-card"><div class="article-heading"><div class="article-title-copy"><p id="result-meta" class="meta"></p><h1 id="result-title" class="result-title" tabindex="-1"></h1></div><figure id="article-figure" class="article-figure" hidden></figure></div><div class="summary-block"><span class="summary-label">기사 요약</span><p id="result-summary" class="result-summary"></p><button id="toggle-summary" class="text-btn" type="button" aria-expanded="false" aria-controls="result-summary" hidden>더 보기</button></div><div id="original-input"></div></article><div id="analysis-counts" class="analysis-counts" aria-label="분석 개요"></div></div>
 <div class="comparison-content">
 <div class="result-tabs" role="tablist" aria-label="분석 결과 보기"><button id="issues-tab" role="tab" aria-selected="true" aria-controls="issue-panel">관점 비교</button><button id="sources-tab" role="tab" aria-selected="false" aria-controls="all-sources" tabindex="-1">참고 출처</button></div>
 <div id="issue-panel" role="tabpanel" aria-labelledby="issues-tab" tabindex="0"><div id="issues"></div><div id="legacy-result" class="legacy-text" hidden></div></div><div id="all-sources" role="tabpanel" aria-labelledby="sources-tab" tabindex="0" hidden></div>
-</div></div></div></section>
+</div><p id="result-notice" class="notice"></p></div></div></section>
 <section id="history" class="screen" aria-label="저장한 기사"><div class="history"><div class="history-heading"><h1 id="history-title" tabindex="-1">저장한 기사</h1><span id="history-count" class="history-count"></span></div><p class="intro">저장한 분석을 다시 읽어보세요.</p><div id="history-tools" class="history-tools" hidden><label class="field-label" for="history-search">기사 제목 검색</label><div class="history-search-row"><input id="history-search" class="field" type="search" placeholder="찾고 싶은 기사 제목" autocomplete="off"><button id="clear-search" class="text-btn" type="button" hidden>지우기</button></div></div><p id="history-message" class="helper" role="status" aria-live="polite"></p><div id="job-records" aria-live="polite"></div><div id="records"></div><div id="delete-notice" class="delete-notice" role="status" hidden><span>기사를 삭제했어요.</span><button id="undo-delete" class="text-btn" type="button">되돌리기</button></div><p class="storage-note">분석 작업은 이 컴퓨터의 로컬 데이터베이스에, 직접 저장한 기사는 브라우저에 보관됩니다.</p></div></section>
 </main></div><script>
 'use strict';
@@ -139,7 +139,7 @@ function normalizeAnalysis(data) {
       if (!isObject(issue) || typeof issue.question !== 'string' || !Array.isArray(issue.perspectives) || issue.perspectives.length > 3 || (issue.note != null && typeof issue.note !== 'string')) {
         throw new Error('쟁점 결과 형식이 올바르지 않습니다. 다시 시도해 주세요.');
       }
-      const perspectives = issue.perspectives.map(view => {
+      const perspectives = issue.perspectives.slice(0,2).map(view => {
         if (!isObject(view) || !['actor', 'claim', 'evidence'].every(key => typeof view[key] === 'string') || !Array.isArray(view.sourceIds)) {
           throw new Error('관점 결과 형식이 올바르지 않습니다. 다시 시도해 주세요.');
         }
@@ -207,15 +207,18 @@ function renderIssue(issue, index, sources) {
     const actor = element('h3','label',view.actor || '이름 없는 관점');
     actor.id = 'view-heading-' + index + '-' + viewIndex;
     opinion.setAttribute('aria-labelledby',actor.id);
-    heading.append(element('span','view-index','관점 ' + String(viewIndex + 1).padStart(2,'0')),actor);
+    heading.append(element('span','view-index',viewIndex===0?'의견 A':'의견 B'),actor);
     opinion.append(heading);
     const links = [...new Map(view.sourceIds.map(id => sources.get(id)).filter(Boolean).map(source => [source.url,source])).values()];
     const supported = links.length > 0 && view.evidence.trim() && view.claim.trim();
     if (supported) {
       opinion.append(element('p','view-claim',view.claim));
-      const evidence = element('details','view-details'); evidence.open = matchMedia('(min-width:760px)').matches;
+      const sourceTitleLine=element('div','source-titles');
+      for (const source of links) { const title=sourceLink({title:source.title,url:source.url}); title.className='source-title-link'; sourceTitleLine.append(title); }
+      opinion.append(sourceTitleLine);
+      const evidence = element('details','view-details'); evidence.open = false;
       const disclosure = element('summary');
-      disclosure.append(element('span','view-detail-label','자료 요약·출처'),element('span','view-detail-count',links.length + '개 자료'));
+      disclosure.append(element('span','view-detail-label','자료 정리 보기'),element('span','view-detail-count',links.length + '개 출처'));
       const evidenceBody = element('div','view-evidence');
       evidenceBody.append(element('p','evidence-copy',view.evidence));
       const sourceBox = element('div', 'source source-chips'); sourceBox.setAttribute('aria-label','이 주장의 근거 출처');

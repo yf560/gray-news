@@ -3,7 +3,7 @@ import server
 import job_store as store
 
 PLAN='Read article. Return JSON only: {"title":"","summary":"","issues":[{"id":"I1","question":"","queries":["search query"]}]}. Up to 2 issues and 4 queries total. Do not decide truth or invent positions.'
-DRAFT='Use only article and supplied documents. Return JSON: {"issues":[{"question":"","perspectives":[{"actor":"","claim":"","evidence":"","document_id":"D1","quote":"exact short quote for internal evidence matching","relation":"supports|challenges|context"}]}]}. Up to 3 views per issue. Write evidence as a concise synthesis in your own words: explain what this source says about the issue and attribute the position to its speaker or institution. Do not copy a passage into evidence. Keep quote as a short exact phrase used only for internal validation. Never invent a contrary position.'
+DRAFT='Use only article and supplied documents. Return JSON: {"issues":[{"question":"","perspectives":[{"actor":"","claim":"","evidence":"","document_id":"D1","quote":"exact short quote for internal evidence matching","relation":"supports|challenges|context"}]}]}. Return up to 2 perspectives per issue. Prefer two genuinely differing positions supported by the documents; if a second position is not supported, return one and state the gap rather than inventing opposition. Write evidence as a concise synthesis in your own words: explain what this source says about the issue and attribute the position to its speaker or institution. Do not copy a passage into evidence. Keep quote as a short exact phrase used only for internal validation. Never invent a contrary position.'
 REVIEW='Review each perspective against article and exact source context. Return JSON: {"checks":[{"index":0,"verdict":"supported|overstatement|mismatched|insufficient","reason":""}]}. A quote can exist but be unrelated. Do not decide factual truth.'
 def parsed(text):
     a,b=text.find('{'),text.rfind('}')
@@ -49,7 +49,7 @@ def run(job_id):
     if not draft:
         draft=call(DRAFT,{'plan':plan,'article':article[:12000],'documents':docs},exaone)
         store.checkpoint(job_id,'draft',draft)
-    views=[v for i in draft.get('issues',[])[:2] for v in i.get('perspectives',[])[:3]]
+    views=[v for i in draft.get('issues',[])[:2] for v in i.get('perspectives',[])[:2]]
     dmap={d['id']:d for d in docs}; valid=[]
     for v in views:
         d=dmap.get(v.get('document_id')); q=v.get('quote','')
@@ -62,7 +62,7 @@ def run(job_id):
     evidence=[]; output=[]
     for issue in draft.get('issues',[])[:2]:
         ps=[]
-        for v in issue.get('perspectives',[])[:3]:
+        for v in issue.get('perspectives',[])[:2]:
             if v not in valid: continue
             ix=valid.index(v)
             if checks.get(ix) != 'supported': continue
