@@ -21,7 +21,7 @@ class AnalysisTests(unittest.TestCase):
                 raise HTTPError(request.full_url, 429, 'limited', {'Retry-After': '1'}, io.BytesIO(b''))
             return FakeResponse(json.dumps(completion({'ok': True})).encode())
         with patch('server.time.sleep') as sleep:
-            server._exaone([], 'fake', opener, final=True)
+            server._exaone([], 'fake', opener)
         self.assertEqual(calls, [180, 180])
         sleep.assert_called_once_with(1)
 
@@ -34,7 +34,6 @@ class AnalysisTests(unittest.TestCase):
 
     def test_search_and_analysis_keep_only_retrieved_source_ids(self):
         replies = iter([
-            completion({'queries': ['정책 공식 발표']}),
             {'results': [
                 {'title': '공식 발표', 'url': 'https://example.org/a', 'content': '확대 계획'},
                 {'title': '중복', 'url': 'https://example.org/a'},
@@ -49,9 +48,10 @@ class AnalysisTests(unittest.TestCase):
         self.assertEqual(result['version'], 1)
         self.assertEqual(result['sources'], [{'id': 'S1', 'title': '공식 발표', 'url': 'https://example.org/a'}])
         self.assertEqual(result['issues'][0]['perspectives'][0]['sourceIds'], ['S1'])
-        self.assertEqual(calls[0][0], server.EXAONE_URL)
-        self.assertEqual(calls[1][0], server.TAVILY_URL + '/search')
-        self.assertIn('확대 계획', calls[2][1]['messages'][1]['content'])
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[1][0], server.EXAONE_URL)
+        self.assertEqual(calls[0][0], server.TAVILY_URL + '/search')
+        self.assertIn('확대 계획', calls[1][1]['messages'][1]['content'])
         self.assertNotIn('private reasoning', json.dumps(result))
 
     def test_url_requires_successful_body_extraction(self):
