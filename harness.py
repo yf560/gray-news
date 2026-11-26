@@ -3,7 +3,7 @@ import server
 import job_store as store
 
 PLAN='Read article. Return JSON only: {"title":"","summary":"","issues":[{"id":"I1","question":"","queries":["search query"]}]}. Up to 2 issues and 4 queries total. Do not decide truth or invent positions.'
-DRAFT='Use only article and supplied documents. Return JSON: {"issues":[{"question":"","perspectives":[{"actor":"","claim":"","evidence":"","document_id":"D1","quote":"exact short quote","relation":"supports|challenges|context"}]}]}. Up to 3 views per issue. Never invent a contrary position.'
+DRAFT='Use only article and supplied documents. Return JSON: {"issues":[{"question":"","perspectives":[{"actor":"","claim":"","evidence":"","document_id":"D1","quote":"exact short quote for internal evidence matching","relation":"supports|challenges|context"}]}]}. Up to 3 views per issue. Write evidence as a concise synthesis in your own words: explain what this source says about the issue and attribute the position to its speaker or institution. Do not copy a passage into evidence. Keep quote as a short exact phrase used only for internal validation. Never invent a contrary position.'
 REVIEW='Review each perspective against article and exact source context. Return JSON: {"checks":[{"index":0,"verdict":"supported|overstatement|mismatched|insufficient","reason":""}]}. A quote can exist but be unrelated. Do not decide factual truth.'
 def parsed(text):
     a,b=text.find('{'),text.rfind('}')
