@@ -79,10 +79,12 @@ def get_job(job_id, include_result=True):
 
 def list_jobs(limit=20):
     with connect() as db:
-        rows=db.execute('SELECT id,status,stage,created_at,updated_at,completed_at,error_code,error_message,retryable,result_json FROM jobs ORDER BY created_at DESC LIMIT ?', (min(max(limit,1),50),)).fetchall()
+        rows=db.execute("SELECT id,status,stage,created_at,updated_at,completed_at,error_code,error_message,retryable,(SELECT json_extract(output_json,'$.title') FROM stages WHERE stages.job_id=jobs.id AND stages.stage='plan' AND stages.status='completed') AS title,result_json FROM jobs ORDER BY created_at DESC LIMIT ?", (min(max(limit,1),50),)).fetchall()
         items=[]
         for row in rows:
-            item=dict(row); raw=item.pop('result_json'); item['title']=json.loads(raw).get('title') if raw else None; items.append(item)
+            item=dict(row); raw=item.pop('result_json')
+            if raw: item['title']=json.loads(raw).get('title') or item['title']
+            items.append(item)
         return items
 
 def checkpoint(job_id,stage,output,validation=None,duration_ms=None):
