@@ -147,7 +147,9 @@ function normalizeAnalysis(data) {
       });
       return {question: issue.question, perspectives, note: issue.note || null};
     });
-    return withArticleImage({version: 1, title: data.title, summary: data.summary, issues, sources: normalizeSources(data.sources, true)},data);
+    const evidence = Array.isArray(data.evidence) ? data.evidence.filter(item => isObject(item) && typeof item.documentId === 'string' && typeof item.quote === 'string').map(item => ({documentId:item.documentId,quote:item.quote,coverage:typeof item.coverage === 'string' ? item.coverage : ''})) : [];
+    const limitations = Array.isArray(data.limitations) ? data.limitations.filter(item => typeof item === 'string') : [];
+    return withArticleImage({version: 1, title: data.title, summary: data.summary, issues, sources: normalizeSources(data.sources, true), evidence, limitations},data);
   }
   // 이전 API 응답과 gray-live-records의 텍스트·인용을 그대로 읽는다.
   if (data.version === undefined && typeof data.text === 'string' && Array.isArray(data.sources)) {
@@ -191,7 +193,7 @@ function selectInputMode(mode, focus = true) {
   $('#form-message').textContent = '';
   if (focus) (mode === 'text' ? $('#article-text') : $('#article-url')).focus();
 }
-function renderIssue(issue, index, sources) {
+function renderIssue(issue, index, sources, evidenceBySource) {
   const card = element('details', 'issue'); card.open = index === 0;
   const summary = element('summary');
   summary.append(element('span', 'issue-no', String(index + 1).padStart(2, '0')), element('span', 'issue-question', issue.question));
@@ -217,6 +219,14 @@ function renderIssue(issue, index, sources) {
       disclosure.append(element('span','view-detail-label','근거·출처'),element('span','view-detail-count',links.length + '개 자료'));
       const evidenceBody = element('div','view-evidence');
       evidenceBody.append(element('p','evidence-copy',view.evidence));
+      for (const id of view.sourceIds) {
+        const citation = evidenceBySource.get(id);
+        if (!citation) continue;
+        const quote = element('blockquote','source-quote');
+        const coverageLabel={snippet_only:'검색 결과 발췌',excerpt:'원문 일부 발췌',full:'원문 인용'}[citation.coverage]||'자료 인용';
+        quote.append(element('span','source-quote-label',coverageLabel),element('p','',citation.quote));
+        evidenceBody.append(quote);
+      }
       const sourceBox = element('div', 'source source-chips'); sourceBox.setAttribute('aria-label','이 주장의 근거 출처');
       for (const source of links) {
         const publisher = source.title.includes(' · ') ? source.title.split(' · ')[0] : new URL(source.url).hostname.replace(/^www\./,'');
@@ -278,6 +288,7 @@ function renderAnalysis(raw, options = {}) {
   $('#result-title').textContent = analysis.title || input.text.slice(0, 60) || '기사의 다양한 관점';
   $('#result-meta').textContent = kind === 'review' ? 'MBN · 수동 작성 결과' : '분석한 기사';
   $('#result-notice').textContent = '';
+  if (analysis.limitations?.length) $('#result-notice').textContent = [...new Set(analysis.limitations)].join(' ');
   $('#result-summary').textContent = analysis.summary || '';
   $('#result-summary').classList.add('is-collapsed');
   $('#toggle-summary').setAttribute('aria-expanded','false'); $('#toggle-summary').textContent='더 보기'; $('#toggle-summary').hidden=true;
@@ -304,7 +315,8 @@ function renderAnalysis(raw, options = {}) {
     counts.append(element('span','','이전에 저장한 분석'));
   }
   if (analysis.version === 1) {
-    for (const [index, issue] of analysis.issues.entries()) $('#issues').append(renderIssue(issue, index, sources));
+    const evidenceBySource = new Map((analysis.evidence || []).map(item => [item.documentId,item]));
+    for (const [index, issue] of analysis.issues.entries()) $('#issues').append(renderIssue(issue, index, sources, evidenceBySource));
     if (!analysis.issues.length) $('#issues').append(element('p', 'notice', '관련 자료에서 비교할 쟁점을 찾지 못했습니다.'));
   } else renderLegacy(analysis);
   const allSources = $('#all-sources'); allSources.replaceChildren();
