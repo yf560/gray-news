@@ -204,7 +204,7 @@ function renderIssue(issue, index, sources) {
   for (const [viewIndex, view] of issue.perspectives.entries()) {
     const opinion = element('article', 'opinion view-' + (viewIndex + 1));
     const heading = element('div','perspective-heading');
-    const actor = element('h3','label',view.actor || '이름 없는 관점');
+    const actor = element('p','speaker-name',view.actor || '이름 없는 관점');
     actor.id = 'view-heading-' + index + '-' + viewIndex;
     opinion.setAttribute('aria-labelledby',actor.id);
     heading.append(element('span','view-index',viewIndex===0?'의견 A':'의견 B'),actor);
@@ -213,6 +213,7 @@ function renderIssue(issue, index, sources) {
     const supported = links.length > 0 && view.evidence.trim() && view.claim.trim();
     if (supported) {
       opinion.append(element('p','view-claim',view.claim));
+      opinion.append(actor);
       const sourceTitleLine=element('div','source-titles');
       for (const source of links) { const title=sourceLink({title:source.title,url:source.url}); title.className='source-title-link'; sourceTitleLine.append(title); }
       opinion.append(sourceTitleLine);
@@ -231,6 +232,7 @@ function renderIssue(issue, index, sources) {
       evidenceBody.append(sourceBox); evidence.append(disclosure,evidenceBody); opinion.append(evidence);
     } else {
       opinion.classList.add('is-unverified');
+      opinion.append(actor);
       opinion.append(element('p','view-claim','자료 부족'), element('p','evidence-copy','이 관점을 뒷받침하는 자료를 찾지 못했어요.'));
     }
     thread.append(opinion);
