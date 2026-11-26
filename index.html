@@ -19,7 +19,7 @@
 <div class="result-tabs" role="tablist" aria-label="분석 결과 보기"><button id="issues-tab" role="tab" aria-selected="true" aria-controls="issue-panel">관점 비교</button><button id="sources-tab" role="tab" aria-selected="false" aria-controls="all-sources" tabindex="-1">참고 출처</button></div>
 <div id="issue-panel" role="tabpanel" aria-labelledby="issues-tab" tabindex="0"><div id="issues"></div><div id="legacy-result" class="legacy-text" hidden></div></div><div id="all-sources" role="tabpanel" aria-labelledby="sources-tab" tabindex="0" hidden></div>
 </div></div></div></section>
-<section id="history" class="screen" aria-label="저장한 기사"><div class="history"><div class="history-heading"><h1 id="history-title" tabindex="-1">저장한 기사</h1><span id="history-count" class="history-count"></span></div><p class="intro">저장한 분석을 다시 읽어보세요.</p><div id="history-tools" class="history-tools" hidden><label class="field-label" for="history-search">기사 제목 검색</label><div class="history-search-row"><input id="history-search" class="field" type="search" placeholder="찾고 싶은 기사 제목" autocomplete="off"><button id="clear-search" class="text-btn" type="button" hidden>지우기</button></div></div><p id="history-message" class="helper" role="status" aria-live="polite"></p><div id="records"></div><div id="delete-notice" class="delete-notice" role="status" hidden><span>기사를 삭제했어요.</span><button id="undo-delete" class="text-btn" type="button">되돌리기</button></div><p class="storage-note">기록은 현재 브라우저에 저장됩니다.</p></div></section>
+<section id="history" class="screen" aria-label="저장한 기사"><div class="history"><div class="history-heading"><h1 id="history-title" tabindex="-1">저장한 기사</h1><span id="history-count" class="history-count"></span></div><p class="intro">저장한 분석을 다시 읽어보세요.</p><div id="history-tools" class="history-tools" hidden><label class="field-label" for="history-search">기사 제목 검색</label><div class="history-search-row"><input id="history-search" class="field" type="search" placeholder="찾고 싶은 기사 제목" autocomplete="off"><button id="clear-search" class="text-btn" type="button" hidden>지우기</button></div></div><p id="history-message" class="helper" role="status" aria-live="polite"></p><div id="job-records" aria-live="polite"></div><div id="records"></div><div id="delete-notice" class="delete-notice" role="status" hidden><span>기사를 삭제했어요.</span><button id="undo-delete" class="text-btn" type="button">되돌리기</button></div><p class="storage-note">분석 작업은 이 컴퓨터의 로컬 데이터베이스에, 직접 저장한 기사는 브라우저에 보관됩니다.</p></div></section>
 </main></div><script>
 'use strict';
 const $ = selector => document.querySelector(selector);
@@ -164,7 +164,7 @@ function show(name, options = {}) {
   const previous = document.querySelector('.screen.active')?.id;
   $('#page-shell').classList.toggle('is-home', name === 'home');
   document.querySelectorAll('.screen').forEach(node => node.classList.toggle('active', node.id === name));
-  if (name === 'history') { records = readRecords(); renderHistory(); }
+  if (name === 'history') { records = readRecords(); renderHistory(); loadJobs(); }
   if (name === 'home') { records = readRecords(); renderRecentRecords(); }
   document.querySelectorAll('header [data-go]').forEach(button => {
     if (button.dataset.go === (name === 'history' ? 'history' : 'home')) button.setAttribute('aria-current','page');
@@ -467,41 +467,37 @@ function formError(message, field) {
   if (field) field.focus();
 }
 async function submitArticle(event) {
-  event.preventDefault();
-  if (pendingRequest) return;
-  const url = inputMode === 'url' ? $('#article-url').value.trim() : ''; const text = inputMode === 'text' ? $('#article-text').value.trim() : '';
-  if (!url && !text) { formError(inputMode === 'url' ? '기사 링크를 입력해 주세요.' : '기사 본문을 입력해 주세요.', inputMode === 'url' ? $('#article-url') : $('#article-text')); return; }
-  if (!text && !safeUrl(url)) { formError('http 또는 https로 시작하는 기사 링크를 입력해 주세요.', $('#article-url')); return; }
-  if (Array.from(text).length > 50000 || Array.from(url).length > 50000) { formError('기사 내용은 50,000자 이내로 입력해 주세요.'); return; }
-  if (!text && matchesReviewArticle(url)) { $('#form-message').textContent=''; openReviewResult({url,text:''}); return; }
-  if (location.protocol === 'file:') { formError('서버를 실행한 뒤 http://127.0.0.1:8765 에서 이용해 주세요.'); return; }
-  const request = {controller: new AbortController(), timedOut: false}; pendingRequest = request;
-  const timer = setTimeout(() => { request.timedOut = true; request.controller.abort(); }, REQUEST_TIMEOUT_MS);
-  setBusy(true); $('#form-message').className = 'helper'; $('#form-message').textContent = '';
-  let openText = false;
+  event.preventDefault(); if (pendingRequest) return;
+  const url=inputMode==='url'?$('#article-url').value.trim():''; const text=inputMode==='text'?$('#article-text').value.trim():'';
+  if(!url&&!text){formError(inputMode==='url'?'기사 링크를 입력해 주세요.':'기사 본문을 입력해 주세요.',inputMode==='url'?$('#article-url'):$('#article-text'));return;}
+  if(!text&&!safeUrl(url)){formError('http 또는 https로 시작하는 기사 링크를 입력해 주세요.',$('#article-url'));return;}
+  if(Array.from(text).length>50000||Array.from(url).length>50000){formError('기사 내용은 50,000자 이내로 입력해 주세요.');return;}
+  if(!text&&matchesReviewArticle(url)){openReviewResult({url,text:''});return;}
+  const request={controller:new AbortController()}; pendingRequest=request; setBusy(true); $('#form-message').className='helper'; $('#form-message').textContent='';
   try {
-    // 선택한 입력 방식만 합의한 API 계약으로 보낸다.
-    const response = await fetch('/api/analyze', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({url, text}), signal: request.controller.signal});
-    let data;
-    try { data = await response.json(); } catch { throw new Error('서버 응답을 읽지 못했습니다. 잠시 후 다시 시도해 주세요.'); }
-    if (!response.ok) {
-      openText = response.status === 422 || data?.code === 'ARTICLE_UNAVAILABLE';
-      const fallback = response.status === 504 ? '분석 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.' : openText ? '기사 본문을 확인하지 못했습니다. 본문을 붙여넣어 주세요.' : '분석하지 못했습니다. 다시 시도해 주세요.';
-      const legacyInputError = data?.error === '기사 내용은 1~50,000자로 입력해 주세요.';
-      throw new Error(legacyInputError ? '분석 서비스 연결이 아직 준비되지 않았어요.' : typeof data?.error === 'string' && data.error.trim() ? data.error : fallback);
-    }
-    renderAnalysis(data, {input: {url, text}});
-  } catch (error) {
-    const message = request.controller.signal.aborted ? request.timedOut ? '분석 시간이 초과되었습니다. 입력 내용은 유지됩니다. 다시 시도해 주세요.' : '분석을 취소했습니다. 입력 내용은 그대로 남아 있어요.' : error instanceof TypeError ? '서버에 연결하지 못했습니다. 서버 실행 상태를 확인해 주세요.' : error.message;
-    formError(message);
-  } finally {
-    clearTimeout(timer); pendingRequest = null; setBusy(false);
-    if (openText) { const message=$('#form-message').textContent; selectInputMode('text'); $('#form-message').textContent=message; }
-  }
+    const response=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,text}),signal:request.controller.signal});
+    const data=await response.json(); if(!response.ok) throw new Error(data.error||'분석을 맡기지 못했습니다.');
+    $('#form-message').textContent='분석을 맡겼어요. 내 기록에서 진행 상황을 확인할 수 있어요.'; show('history');
+  } catch(error){formError(error instanceof TypeError?'로컬 서버 연결을 확인해 주세요.':error.message);}
+  finally{pendingRequest=null;setBusy(false);}
 }
-
-
-
+const jobLabels={queued:'대기 중',running:'분석 중',completed:'완료',failed:'확인 필요',interrupted:'중단됨',cancelled:'취소됨'};
+const stageLabels={queued:'대기열',article:'기사 확인',plan_started:'쟁점 설계 중',plan:'쟁점 설계 완료',retrieve:'자료 수집 완료',draft:'입장 초안 완료',review:'근거 검토',completed:'완료',failed:'실패',interrupted:'중단됨',cancelled:'취소됨'};
+let jobPoll;
+async function loadJobs(){
+  try{
+    const r=await fetch('/api/jobs?limit=30'); if(!r.ok) throw new Error('기록을 불러오지 못했습니다.'); const data=await r.json(); const root=$('#job-records'); root.replaceChildren();
+    for(const job of data.items){
+      const row=element('article','record'); const title=element('strong','',job.status==='completed'?(job.title||'완료된 분석'):jobLabels[job.status]||'분석 기록');
+      const meta=element('small','',(stageLabels[job.stage]||'분석 진행')+' · '+new Date(job.created_at).toLocaleString('ko-KR')); const copy=element('div','record-copy'); copy.append(title,meta); if(job.error_message) copy.append(element('small','',job.error_message)); row.append(copy);
+      if(job.status==='completed'){const open=element('button','text-btn','결과 열기');open.type='button';open.addEventListener('click',async()=>{const d=await fetch('/api/jobs/'+encodeURIComponent(job.id)).then(x=>x.json());if(d.result)renderAnalysis(d.result,{returnScreen:'history'});});row.append(open);}
+      else if(job.status==='interrupted'||job.status==='failed'&&job.retryable){const resume=element('button','text-btn','재개');resume.type='button';resume.addEventListener('click',async()=>{await fetch('/api/jobs/'+job.id+'/resume',{method:'POST'});loadJobs();});row.append(resume);}
+      else if(job.status==='queued'||job.status==='running'){const cancel=element('button','text-btn','취소');cancel.type='button';cancel.addEventListener('click',async()=>{await fetch('/api/jobs/'+job.id+'/cancel',{method:'POST'});loadJobs();});row.append(cancel);}
+      root.append(row);
+    }
+    clearTimeout(jobPoll); if(data.items.some(j=>j.status==='queued'||j.status==='running')) jobPoll=setTimeout(loadJobs,5000);
+  }catch(error){$('#history-message').textContent=error.message;}
+}
 $('#article-form').addEventListener('submit', submitArticle);
 $('#cancel-analysis').addEventListener('click', () => pendingRequest?.controller.abort());
 $('#save-record').addEventListener('click', saveRecord);

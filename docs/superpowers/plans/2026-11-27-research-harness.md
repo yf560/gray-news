@@ -3,6 +3,8 @@
 > **For agentic workers:** Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax for tracking. No agent delegation is required.
 
 **Goal:** 로컬에서 기사를 맡기고, 단계별 조사·근거 검토를 거친 결과를 나중에 내 기록에서 확인한다.
+
+**Progress:** 기본 비동기 작업, SQLite 체크포인트, EXAONE/Tavily 계획→수집→초안→근거 검토, 재개·취소, 내 기록 연결을 구현했다. 2026-11-27 자동 테스트 18건 통과. 실제 EXAONE 검증은 호출 한도 응답으로 미완료. 제한된 보완 검색 및 실기사 검증은 후속 작업.
 **Architecture:** Python HTTP 서버와 워커 스레드 하나를 사용한다. SQLite에 작업·체크포인트·문서·근거·결과를 저장하고 기존 UI 렌더러에 version:1 결과를 전달한다.
 **Tech Stack:** Python 표준 라이브러리, sqlite3, EXAONE API, Tavily API, 기존 HTML/CSS/JavaScript.
 **Spec:** `docs/superpowers/specs/2026-11-27-research-harness.md` — 구현 전 반드시 읽는다.

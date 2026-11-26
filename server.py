@@ -4,11 +4,15 @@ import os
 import re
 import time
 import logging
+import threading
+import hashlib
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse, unquote
 from urllib.request import Request, urlopen
+import job_store
+import harness
 
 ROOT = Path(__file__).resolve().parent
 MAX_INPUT = 50000
@@ -216,7 +220,18 @@ class Handler(SimpleHTTPRequestHandler):
             return None
         return super().send_head()
 
+    def _local_request(self):
+        origin=self.headers.get('Origin')
+        return self.headers.get('Host') in ('127.0.0.1:8765','localhost:8765') and (not origin or origin in ('http://127.0.0.1:8765','http://localhost:8765'))
+
     def do_POST(self):
+        if not self._local_request(): self.send_error(403); return
+        if self.path.startswith('/api/jobs/') and self.path.endswith('/resume'):
+            self.handle_job_action('resume'); return
+        if self.path.startswith('/api/jobs/') and self.path.endswith('/cancel'):
+            self.handle_job_action('cancel'); return
+        if self.path == '/api/jobs':
+            self.handle_jobs_post(); return
         if self.path != "/api/analyze":
             self.send_error(404)
             return
@@ -266,6 +281,59 @@ class Handler(SimpleHTTPRequestHandler):
         except (HTTPError, URLError, OSError, AnalysisFailure):
             self.respond(502, {"code": "ANALYSIS_FAILED", "error": "분석에 실패했습니다. API 키, 모델 권한과 네트워크를 확인해 주세요."})
 
+    def handle_jobs_post(self):
+        try:
+            if self.headers.get_content_type() != 'application/json': raise ValueError('JSON 요청만 지원합니다.')
+            length=int(self.headers.get('Content-Length','0'))
+            if length<=0 or length>MAX_INPUT*4: raise ValueError('입력 크기를 확인해 주세요.')
+            payload=json.loads(self.rfile.read(length))
+            if not isinstance(payload,dict): raise ValueError('JSON 객체를 보내 주세요.')
+            url=payload.get('url',''); text=payload.get('text',payload.get('article',''))
+            if not isinstance(url,str) or not isinstance(text,str): raise ValueError('URL과 본문은 문자열이어야 합니다.')
+            url=url.strip(); text=text.strip()
+            if text: data={'url':'','text':text}
+            elif url:
+                parsed=urlparse(url)
+                if parsed.scheme not in ('http','https') or not parsed.netloc or parsed.username or parsed.password: raise ValueError('http 또는 https 기사 URL을 입력해 주세요.')
+                data={'url':url,'text':''}
+            else: raise ValueError('기사 URL 또는 본문을 입력해 주세요.')
+            article=data['text'] or data['url']
+            if len(article)>MAX_INPUT: raise ValueError('기사 내용은 50,000자 이내로 입력해 주세요.')
+            if not os.environ.get('EXAONE_API_KEY') or not os.environ.get('TAVILY_API_KEY'): raise ValueError('EXAONE_API_KEY와 TAVILY_API_KEY를 .env에 설정해 주세요.')
+            fingerprint=hashlib.sha256(json.dumps(data,ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+            job,created=job_store.create_job(data,fingerprint)
+            self.respond(202,{'id':job['id'],'status':job['status'],'stage':job['stage'],'created':created})
+        except OverflowError as exc: self.respond(429,{'code':'QUEUE_FULL','error':str(exc)})
+        except (ValueError,json.JSONDecodeError) as exc: self.respond(400,{'code':'INVALID_INPUT','error':str(exc)})
+
+    def do_GET(self):
+        if not self._local_request(): self.send_error(403); return
+        parsed=urlparse(self.path)
+        if parsed.path=='/api/jobs':
+            from urllib.parse import parse_qs
+            try: limit=min(max(int(parse_qs(parsed.query).get('limit',['20'])[0]),1),50)
+            except ValueError: limit=20
+            self.respond(200,{'items':job_store.list_jobs(limit)}); return
+        if parsed.path.startswith('/api/jobs/'):
+            job=job_store.get_job(parsed.path.rsplit('/',1)[-1])
+            if not job: self.respond(404,{'code':'NOT_FOUND','error':'분석 기록을 찾지 못했습니다.'})
+            else: self.respond(200,{k:job[k] for k in ('id','status','stage','created_at','updated_at','completed_at','error_code','error_message','retryable','result')})
+            return
+        super().do_GET()
+
+    def do_DELETE(self):
+        if not self._local_request(): self.send_error(403); return
+        if not self.path.startswith('/api/jobs/'): self.send_error(404); return
+        status=job_store.delete_job(self.path.rsplit('/',1)[-1])
+        self.respond(404 if status=='missing' else 409 if status=='conflict' else 200,{'status':status})
+
+    def do_PATCH(self): self.send_error(405)
+
+    def handle_job_action(self,action):
+        job_id=self.path.split('/')[-2]
+        status=job_store.resume(job_id) if action=='resume' else job_store.request_cancel(job_id)
+        self.respond(404 if status=='missing' else 409 if status=='conflict' else 202,{'status':status,'id':job_id})
+
     def respond(self, status, payload):
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
@@ -277,5 +345,20 @@ class Handler(SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(message)s")
+    job_store.init_db()
+    def worker():
+        while True:
+            job=job_store.claim_next()
+            if not job:
+                threading.Event().wait(1); continue
+            try: harness.run(job['id'])
+            except InterruptedError: job_store.finish_cancel(job['id'])
+            except Exception as exc:
+                code='RATE_LIMITED' if isinstance(exc,RateLimited) else 'ANALYSIS_FAILED'
+                message='API 호출 한도에 도달했습니다. 잠시 후 재개해 주세요.' if code=='RATE_LIMITED' else '분석에 실패했습니다. 재개하거나 입력을 확인해 주세요.'
+                retryable=isinstance(exc,(RateLimited,URLError,TimeoutError)) or isinstance(exc,HTTPError) and exc.code>=500
+                job_store.fail(job['id'],code,message,retryable)
+                logging.warning('GRAY job=%s failed code=%s',job['id'],code)
+    threading.Thread(target=worker,daemon=True,name='gray-worker').start()
     print("GRAY: http://127.0.0.1:8765", flush=True)
     ThreadingHTTPServer(("127.0.0.1", 8765), Handler).serve_forever()
