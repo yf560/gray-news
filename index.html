@@ -500,7 +500,7 @@ async function loadJobs(){
     const active=data.items.filter(j=>j.status==='queued'||j.status==='running');
     if(active.length){const wait=element('div','job-wait-note');wait.append(element('strong','','분석 중이에요'),element('p','','기사 제목과 쟁점을 정리하고 있어요. 완료되면 이 기록에서 결과를 확인할 수 있어요.'));root.append(wait);}
     if(!records.length&&!data.items.length){const empty=element('div','empty-state');empty.append(element('h2','','아직 저장한 기사가 없어요'),element('p','','분석을 맡기면 이곳에서 진행 상황과 결과를 확인할 수 있어요.'));const start=element('button','secondary','기사 분석하러 가기');start.type='button';start.addEventListener('click',()=>show('home'));empty.append(start);$('#records').append(empty);}
-    else $('#records .empty-state').remove();
+    else if(!records.length) $('#records .empty-state')?.remove();
     for(const job of data.items){
       const row=element('article','record'); const title=element('strong','',job.title|| (job.status==='queued'?'기사 제목 확인 중':jobLabels[job.status]||'분석 기록'));
       const meta=element('small','',(stageLabels[job.stage]||'분석 진행')+' · '+new Date(job.created_at).toLocaleString('ko-KR')); const copy=element('div','record-copy'); copy.append(title,meta); if(job.error_message) copy.append(element('small','',job.error_message)); row.append(copy);
