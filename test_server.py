@@ -1,38 +1,57 @@
 import io
 import json
 import unittest
+from urllib.error import URLError
 import server
 
 class FakeResponse(io.BytesIO):
     def __enter__(self): return self
     def __exit__(self, *args): self.close()
 
+def completion(value, finish='stop'):
+    return {'choices': [{'finish_reason': finish, 'message': {'content': json.dumps(value), 'reasoning_content': 'private reasoning'}}]}
+
 class AnalysisTests(unittest.TestCase):
-    def test_citation_offsets_follow_response_text(self):
-        payload = {"status": "completed", "output": [{"type": "message", "content": [
-            {"type": "output_text", "text": "첫 의견", "annotations": [{"type": "url_citation", "url": "https://example.org/a", "start_index": 0, "end_index": 3}]},
-            {"type": "output_text", "text": "둘째 의견", "annotations": [{"type": "url_citation", "url": "https://example.org/b", "start_index": 0, "end_index": 2}]}]}]}
-        result = server.analyze("기사", "test-key", lambda request, timeout: FakeResponse(json.dumps(payload).encode()))
-        self.assertEqual([result["text"][c["start"]:c["end"]] for c in result["citations"]], ["첫 의", "둘째"])
-
-    def test_returns_only_valid_cited_sources(self):
-        payload = {"status": "completed", "output": [{"type": "message", "content": [{"type": "output_text", "text": "쟁점별 의견", "annotations": [
-            {"type": "url_citation", "url": "https://example.org/a", "title": "자료 A"},
-            {"type": "url_citation", "url": "https://example.org/a", "title": "중복"},
-            {"type": "url_citation", "url": "javascript:alert(1)", "title": "위험"}]}]}]}
+    def test_search_and_analysis_keep_only_retrieved_source_ids(self):
+        replies = iter([
+            completion({'queries': ['정책 공식 발표']}),
+            {'results': [
+                {'title': '공식 발표', 'url': 'https://example.org/a', 'content': '확대 계획'},
+                {'title': '중복', 'url': 'https://example.org/a'},
+                {'url': 'javascript:alert(1)'}]},
+            completion({'title': '정책', 'summary': '요약', 'issues': [{'question': '확대?', 'perspectives': [{'actor': '정부', 'claim': '확대', 'evidence': '계획', 'sourceIds': ['S1', 'S99']}], 'note': None}]}),
+        ])
+        calls = []
         def opener(request, timeout):
-            request_data = json.loads(request.data)
-            self.assertEqual(request_data["tools"], [{"type": "web_search"}])
-            self.assertEqual(request_data["tool_choice"], "required")
-            return FakeResponse(json.dumps(payload).encode())
-        result = server.analyze("기사 본문", "test-key", opener)
-        self.assertEqual(result["text"], "쟁점별 의견")
-        self.assertEqual(result["sources"], [{"url": "https://example.org/a", "title": "자료 A"}])
+            calls.append((request.full_url, json.loads(request.data)))
+            return FakeResponse(json.dumps(next(replies)).encode())
+        result = server.analyze('기사 본문', 'fake-exaone', 'fake-tavily', opener=opener)
+        self.assertEqual(result['version'], 1)
+        self.assertEqual(result['sources'], [{'id': 'S1', 'title': '공식 발표', 'url': 'https://example.org/a'}])
+        self.assertEqual(result['issues'][0]['perspectives'][0]['sourceIds'], ['S1'])
+        self.assertEqual(calls[0][0], server.EXAONE_URL)
+        self.assertEqual(calls[1][0], server.TAVILY_URL + '/search')
+        self.assertIn('확대 계획', calls[2][1]['messages'][1]['content'])
+        self.assertNotIn('private reasoning', json.dumps(result))
 
-    def test_incomplete_response_is_not_presented_as_success(self):
+    def test_url_requires_successful_body_extraction(self):
         def opener(request, timeout):
-            return FakeResponse(b'{"status":"incomplete","output":[]}')
-        with self.assertRaises(ValueError):
-            server.analyze("기사", "test-key", opener)
+            self.assertTrue(request.full_url.endswith('/extract'))
+            return FakeResponse(b'{"results":[],"failed_results":[]}')
+        with self.assertRaises(server.ArticleUnavailable):
+            server.analyze('https://example.org/a', 'fake', 'fake', source_url='https://example.org/a', opener=opener)
 
-if __name__ == "__main__": unittest.main()
+    def test_truncated_model_response_is_rejected(self):
+        def opener(request, timeout):
+            return FakeResponse(json.dumps(completion({}, 'length')).encode())
+        with self.assertRaises(server.AnalysisFailure):
+            server.analyze('기사', 'fake', 'fake', opener=opener)
+
+    def test_network_error_is_preserved(self):
+        def opener(request, timeout):
+            raise URLError('offline')
+        with self.assertRaises(URLError):
+            server.analyze('기사', 'fake', 'fake', opener=opener)
+
+if __name__ == '__main__':
+    unittest.main()
