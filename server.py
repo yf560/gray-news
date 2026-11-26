@@ -5,7 +5,7 @@ import re
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parent
@@ -182,6 +182,17 @@ def analyze(article, exaone_key, tavily_key, source_url=None, opener=urlopen):
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
+
+    def send_head(self):
+        path = (ROOT / unquote(urlparse(self.path).path).lstrip("/")).resolve()
+        public = {ROOT / "index.html", ROOT / "미리보기.html"}
+        assets = ROOT / "assets"
+        if path == ROOT:
+            path = ROOT / "index.html"
+        if path not in public and not (assets in path.parents and path.suffix.lower() in {".css", ".svg", ".png", ".jpg", ".webp", ".js"}):
+            self.send_error(404)
+            return None
+        return super().send_head()
 
     def do_POST(self):
         if self.path != "/api/analyze":
