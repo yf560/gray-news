@@ -2,6 +2,8 @@
 import json
 import os
 import re
+import time
+import logging
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -10,7 +12,6 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parent
 MAX_INPUT = 50000
-API_TIMEOUT = 60
 EXAONE_URL = "https://api.exaone.ai/v1/chat/completions"
 TAVILY_URL = "https://api.tavily.com"
 
@@ -51,24 +52,53 @@ class ArticleUnavailable(ValueError):
     pass
 
 
+class RateLimited(AnalysisFailure):
+    pass
+
+
 def _post_json(url, payload, api_key, opener=urlopen):
     request = Request(url, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
                       headers={"Authorization": "Bearer " + api_key,
                                "Content-Type": "application/json"})
-    with opener(request, timeout=API_TIMEOUT) as response:
+    is_model = url == EXAONE_URL
+    stage = "analysis" if is_model and payload.get("max_tokens", 0) > 4096 else "query" if is_model else "retrieval"
+    timeout = 180 if stage == "analysis" else 60 if is_model else 20
+    started = time.monotonic()
+    response = None
+    for attempt in range(3):
+        try:
+            response = opener(request, timeout=timeout)
+            break
+        except HTTPError as exc:
+            if exc.code != 429:
+                exc.close()
+                raise
+            try:
+                delay = float(exc.headers.get("retry-after-ms", "0")) / 1000 or float(exc.headers.get("Retry-After", "0")) or 2 ** (attempt + 1)
+            except ValueError:
+                delay = 2 ** (attempt + 1)
+            exc.close()
+            if attempt == 2 or delay > 20:
+                raise RateLimited("API 호출 한도에 도달했습니다. 잠시 후 다시 시도해 주세요.") from None
+            time.sleep(max(1, delay))
+        except TimeoutError:
+            logging.warning("GRAY stage=%s timeout elapsed=%.1f", stage, time.monotonic() - started)
+            raise
+    with response:
         try:
             data = json.load(response)
         except (ValueError, UnicodeError) as exc:
             raise AnalysisFailure("외부 API 응답을 읽지 못했습니다.") from exc
     if not isinstance(data, dict):
         raise AnalysisFailure("외부 API 응답 형식이 올바르지 않습니다.")
+    logging.info("GRAY stage=%s completed elapsed=%.1f", stage, time.monotonic() - started)
     return data
 
 
-def _exaone(messages, api_key, opener=urlopen):
+def _exaone(messages, api_key, opener=urlopen, final=False):
     data = _post_json(EXAONE_URL, {
         "model": os.environ.get("EXAONE_MODEL", "k-exaone_v2.5"),
-        "messages": messages, "reasoning_effort": "low", "max_tokens": 4096,
+        "messages": messages, "reasoning_effort": "low", "max_tokens": 8192 if final else 4096,
         "temperature": 1.0, "top_p": 0.95, "stream": False,
     }, api_key, opener)
     choices = data.get("choices", [])
@@ -123,7 +153,7 @@ def analyze(article, exaone_key, tavily_key, source_url=None, opener=urlopen):
     sources, seen = [], set()
     if source_url:
         sources.append({"id": "S1", "title": "입력 기사", "url": source_url,
-                        "content": article[:4000]})
+                        "content": article[:1500]})
         seen.add(source_url)
     for query in queries:
         data = _post_json(TAVILY_URL + "/search", {
@@ -138,10 +168,10 @@ def analyze(article, exaone_key, tavily_key, source_url=None, opener=urlopen):
             seen.add(url)
             sources.append({"id": f"S{len(sources) + 1}",
                             "title": str(item.get("title") or url)[:300],
-                            "url": url, "content": str(item.get("content") or "")[:4000]})
-            if len(sources) >= 15:
+                            "url": url, "content": str(item.get("content") or "")[:1500]})
+            if len(sources) >= 10:
                 break
-        if len(sources) >= 15:
+        if len(sources) >= 10:
             break
 
     material = [{k: s[k] for k in ("id", "title", "url", "content")} for s in sources]
@@ -149,7 +179,7 @@ def analyze(article, exaone_key, tavily_key, source_url=None, opener=urlopen):
         {"role": "system", "content": ANALYSIS_PROMPT},
         {"role": "user", "content": "입력 기사:\n" + article[:MAX_INPUT] +
          "\n\n검색 자료:\n" + json.dumps(material, ensure_ascii=False)},
-    ], exaone_key, opener))
+    ], exaone_key, opener, final=True))
     if not isinstance(result.get("title"), str) or not isinstance(result.get("summary"), str) or not isinstance(result.get("issues"), list):
         raise AnalysisFailure("분석 결과에 필수 항목이 없습니다.")
     known_ids = {s["id"] for s in sources}
@@ -233,6 +263,8 @@ class Handler(SimpleHTTPRequestHandler):
             self.respond(200, analyze(article, exaone_key, tavily_key, source_url=source_url))
         except ArticleUnavailable as exc:
             self.respond(422, {"code": "ARTICLE_UNAVAILABLE", "error": str(exc)})
+        except RateLimited as exc:
+            self.respond(429, {"code": "RATE_LIMITED", "error": str(exc)})
         except AnalysisFailure:
             self.respond(502, {"code": "ANALYSIS_FAILED", "error": "검색 또는 분석 결과를 처리하지 못했습니다. 다시 시도해 주세요."})
         except (ValueError, json.JSONDecodeError) as exc:
@@ -252,5 +284,6 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     print("GRAY: http://127.0.0.1:8765", flush=True)
     ThreadingHTTPServer(("127.0.0.1", 8765), Handler).serve_forever()

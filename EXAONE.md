@@ -23,3 +23,5 @@ API 응답을 대체한 단위 테스트: py -m unittest test_server.py
 - https://docs.exaone.ai/ko/docs/k-exaone-2.5
 - https://docs.tavily.com/documentation/api-reference/endpoint/search
 - https://docs.tavily.com/documentation/api-reference/endpoint/extract
+
+외부 요청 제한: 검색어 생성 60초, 최종 분석 180초, Tavily 20초. 429는 최대 2회 재시도하며 Retry-After가 20초보다 크면 즉시 RATE_LIMITED로 안내합니다. 단계와 경과 시간만 로그에 기록하며 키·본문·API 응답은 기록하지 않습니다.

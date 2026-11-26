@@ -1,7 +1,8 @@
 import io
 import json
 import unittest
-from urllib.error import URLError
+from urllib.error import URLError, HTTPError
+from unittest.mock import patch
 import server
 
 class FakeResponse(io.BytesIO):
@@ -12,6 +13,25 @@ def completion(value, finish='stop'):
     return {'choices': [{'finish_reason': finish, 'message': {'content': json.dumps(value), 'reasoning_content': 'private reasoning'}}]}
 
 class AnalysisTests(unittest.TestCase):
+    def test_rate_limit_retries_then_succeeds(self):
+        calls = []
+        def opener(request, timeout):
+            calls.append(timeout)
+            if len(calls) == 1:
+                raise HTTPError(request.full_url, 429, 'limited', {'Retry-After': '1'}, io.BytesIO(b''))
+            return FakeResponse(json.dumps(completion({'ok': True})).encode())
+        with patch('server.time.sleep') as sleep:
+            server._exaone([], 'fake', opener, final=True)
+        self.assertEqual(calls, [180, 180])
+        sleep.assert_called_once_with(1)
+
+    def test_long_rate_limit_returns_clear_failure(self):
+        def opener(request, timeout):
+            raise HTTPError(request.full_url, 429, 'limited', {'Retry-After': '3600'}, io.BytesIO(b''))
+        with self.assertRaises(server.RateLimited), patch('server.time.sleep') as sleep:
+            server._exaone([], 'fake', opener)
+        sleep.assert_not_called()
+
     def test_search_and_analysis_keep_only_retrieved_source_ids(self):
         replies = iter([
             completion({'queries': ['정책 공식 발표']}),

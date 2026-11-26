@@ -37,6 +37,11 @@ class LocalChecks(unittest.TestCase):
             status,body=self.request('/api/analyze',{'url':'','text':'기사'})
             self.assertEqual(status,200)
             self.assertEqual(json.loads(body)['version'],1)
+    def test_rate_limit_response(self):
+        with patch('server.analyze',side_effect=server.RateLimited('잠시 후 다시 시도')):
+            status,body=self.request('/api/analyze',{'text':'기사'})
+            self.assertEqual(status,429)
+            self.assertEqual(json.loads(body)['code'],'RATE_LIMITED')
     def test_failure(self):
         with patch('server.analyze',side_effect=server.AnalysisFailure('upstream')):
             self.assertEqual(self.request('/api/analyze',{'text':'기사'})[0],502)
